@@ -288,7 +288,20 @@ Question: ${JSON.stringify(question)}`;
   return plan;
 }
 export async function answerQuestion(env: RuntimeEnv, question: string, s: Snapshot, filters: Filters, offline = false): Promise<QueryResult & {planner:string}> {
-  const plan = env.GEMINI_API_KEY && !offline ? await geminiPlan(env,question,s,filters) : offlinePlan(question,filters);
+  let plan: QueryPlan;
+  let planner = 'Offline parser';
+  if (env.GEMINI_API_KEY && !offline) {
+    try {
+      plan = await geminiPlan(env,question,s,filters);
+      planner = 'Gemini';
+    } catch {
+      plan = offlinePlan(question,filters);
+      planner = 'Offline parser';
+    }
+  } else {
+    plan = offlinePlan(question,filters);
+    planner = 'Offline parser';
+  }
   if (plan.mode === 'conversational') {
     return {
       rows: [],
@@ -297,7 +310,7 @@ export async function answerQuestion(env: RuntimeEnv, question: string, s: Snaps
       sql: '-- Conversational response\n-- No database query executed',
       parameters: [],
       source: s.source,
-      planner: env.GEMINI_API_KEY && !offline ? 'Gemini' : 'Built-in'
+      planner
     };
   }
   const depsError = availability(s,[['fact_order_items',[...METRICS[plan.metric].columns]],...dimensionDeps(plan.dimension),...filterDeps(plan.filters)]);
@@ -309,10 +322,10 @@ export async function answerQuestion(env: RuntimeEnv, question: string, s: Snaps
       sql: '-- Table dependency paused\n-- No query executed',
       parameters: [],
       source: s.source,
-      planner: env.GEMINI_API_KEY && !offline ? 'Gemini' : 'Offline parser'
+      planner
     };
   }
-  if (s.source === 'demo') return {...executePlan(s,plan),explanation:plan.explanation,planner:env.GEMINI_API_KEY && !offline ? 'Gemini' : 'Offline parser'};
+  if (s.source === 'demo') return {...executePlan(s,plan),explanation:plan.explanation,planner};
   const rpcPlan = {
     metric: plan.metric,
     dimension: plan.dimension,

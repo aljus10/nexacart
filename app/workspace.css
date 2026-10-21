@@ -23,3 +23,29 @@
 @media(max-width:520px){.nx-ai{grid-template-columns:1fr;gap:0}.nx-ai-glyph-wrap{grid-column:1;grid-row:2;height:125px;margin:0;width:100%}.nx-ai-glyph{height:125px}.nx-ai-intro{grid-column:1;grid-row:3;margin-top:0}.nx-ai-intro h3{font-size:26px}.nx-ai-intro h3 br{display:none}.nx-ai-suggestions{grid-column:1;grid-row:4}.nx-ai-intro>.nx-overline{font-size:7px}.nx-ai-bottom{font-size:8px}.nx-ai-suggestions>button{font-size:11px}.nx-grid-tools>button{font-size:0}.nx-grid-search input{font-size:10px}.nx-table-title p{font-size:8px}.nx-store-row,.nx-store-labels{grid-template-columns:minmax(0,1fr) 80px 36px 14px;gap:8px}.nx-store-name strong{font-size:10px}.nx-store-name small{font-size:8px}.nx-kpi-foot>small,.nx-kpi-foot>span{font-size:8px}.nx-card-bottom,.nx-card-bottom button,.nx-card-bottom>span:last-child{font-size:8px}.nx-footer>span:first-child>span,.nx-footer>span:last-child{font-size:8px}}
 
 .nx-metric-compact{display:none}@media(max-width:520px){.nx-metric-full{display:none}.nx-metric-compact{display:block}}
+
+/* Responsive Tab Labels & Touch Ergonomics */
+.nx-tab-text-mobile{display:none}
+.nx-workspace button,.nx-workspace a,.nx-tabs>button,.nx-grid-tools>button{ -webkit-tap-highlight-color:transparent }
+
+@media(max-width:600px){
+ .nx-tab-text-full{display:none!important}
+ .nx-tab-text-mobile{display:inline!important}
+ .nx-connection-status>span:not(.nx-status-dot){max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .nx-row-detail{width:100%!important;max-width:100%!important;inset:0!important;border-left:none!important;z-index:45!important}
+ .nx-grid-toolbar{flex-direction:column;align-items:stretch;gap:8px;padding:10px 14px;height:auto;min-height:auto}
+ .nx-grid-tools{overflow-x:auto;padding-bottom:3px;scrollbar-width:none;-webkit-overflow-scrolling:touch;width:100%}
+ .nx-grid-tools>button{flex-shrink:0;white-space:nowrap}
+ .nx-grid-search{width:100%;box-sizing:border-box}
+ .nx-grid-search input{width:100%;min-width:0}
+ .nx-grid-scroll{-webkit-overflow-scrolling:touch}
+}
+
+@media(max-width:440px){
+ .nx-category-content{flex-direction:column;align-items:center;gap:16px;padding:18px 12px}
+ .nx-donut{width:160px;max-width:160px;min-width:130px}
+ .nx-category-legend{width:100%;max-width:100%}
+ .nx-grid-pagination{flex-wrap:wrap;gap:8px;justify-content:center;padding:8px 10px}
+ .nx-grid-pagination>label{margin-left:0}
+}
+
