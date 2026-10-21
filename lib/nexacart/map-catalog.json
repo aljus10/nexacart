@@ -1,0 +1,182 @@
+{
+  "source": "User-provided dim_seller_rows.csv and dim_shipping_rows.csv",
+  "sellers": [
+    {
+      "seller_id": 1,
+      "shop_name": "ByteHub PH",
+      "seller_city": "Manila"
+    },
+    {
+      "seller_id": 2,
+      "shop_name": "Gadget Grove",
+      "seller_city": "Quezon City"
+    },
+    {
+      "seller_id": 3,
+      "shop_name": "VoltCart Mobile",
+      "seller_city": "Makati"
+    },
+    {
+      "seller_id": 4,
+      "shop_name": "TechNest Store",
+      "seller_city": "Pasig"
+    },
+    {
+      "seller_id": 5,
+      "shop_name": "SoundSpace PH",
+      "seller_city": "Taguig"
+    },
+    {
+      "seller_id": 6,
+      "shop_name": "Urban Wardrobe",
+      "seller_city": "Manila"
+    },
+    {
+      "seller_id": 7,
+      "shop_name": "ThreadLine PH",
+      "seller_city": "Quezon City"
+    },
+    {
+      "seller_id": 8,
+      "shop_name": "Daily Fits",
+      "seller_city": "Cebu City"
+    },
+    {
+      "seller_id": 9,
+      "shop_name": "NorthLane Fashion",
+      "seller_city": "Davao City"
+    },
+    {
+      "seller_id": 10,
+      "shop_name": "StreetMode Store",
+      "seller_city": "Makati"
+    },
+    {
+      "seller_id": 11,
+      "shop_name": "GlowLab Beauty",
+      "seller_city": "Manila"
+    },
+    {
+      "seller_id": 12,
+      "shop_name": "PureSkin PH",
+      "seller_city": "Quezon City"
+    },
+    {
+      "seller_id": 13,
+      "shop_name": "BelleCare Store",
+      "seller_city": "Cebu City"
+    },
+    {
+      "seller_id": 14,
+      "shop_name": "FreshAura Beauty",
+      "seller_city": "Davao City"
+    },
+    {
+      "seller_id": 15,
+      "shop_name": "HomeCraft Market",
+      "seller_city": "Manila"
+    },
+    {
+      "seller_id": 16,
+      "shop_name": "Casa Living",
+      "seller_city": "Quezon City"
+    },
+    {
+      "seller_id": 17,
+      "shop_name": "Nest and Home",
+      "seller_city": "Pasig"
+    },
+    {
+      "seller_id": 18,
+      "shop_name": "Kitchen Corner PH",
+      "seller_city": "Cebu City"
+    },
+    {
+      "seller_id": 19,
+      "shop_name": "Daily Pantry",
+      "seller_city": "Manila"
+    },
+    {
+      "seller_id": 20,
+      "shop_name": "Fresh Basket PH",
+      "seller_city": "Quezon City"
+    },
+    {
+      "seller_id": 21,
+      "shop_name": "Brew and Bites",
+      "seller_city": "Baguio"
+    },
+    {
+      "seller_id": 22,
+      "shop_name": "Snack Station PH",
+      "seller_city": "Legazpi City"
+    },
+    {
+      "seller_id": 23,
+      "shop_name": "ActiveGear PH",
+      "seller_city": "Manila"
+    },
+    {
+      "seller_id": 24,
+      "shop_name": "PeakFit Store",
+      "seller_city": "Cebu City"
+    },
+    {
+      "seller_id": 25,
+      "shop_name": "Motion Sports",
+      "seller_city": "Davao City"
+    },
+    {
+      "seller_id": 26,
+      "shop_name": "PaperTrail Supplies",
+      "seller_city": "Quezon City"
+    },
+    {
+      "seller_id": 27,
+      "shop_name": "StudyHub PH",
+      "seller_city": "Manila"
+    },
+    {
+      "seller_id": 28,
+      "shop_name": "WorkDesk Store",
+      "seller_city": "Makati"
+    },
+    {
+      "seller_id": 29,
+      "shop_name": "OfficeNest",
+      "seller_city": "Pasig"
+    },
+    {
+      "seller_id": 30,
+      "shop_name": "Nexa General Store",
+      "seller_city": "Taguig"
+    }
+  ],
+  "shipping": [
+    {
+      "shipping_id": 1,
+      "shipping_method": "Standard Delivery",
+      "courier_name": "J&T Express"
+    },
+    {
+      "shipping_id": 2,
+      "shipping_method": "Standard Delivery",
+      "courier_name": "SPX Express"
+    },
+    {
+      "shipping_id": 3,
+      "shipping_method": "Express Delivery",
+      "courier_name": "SPX Express"
+    },
+    {
+      "shipping_id": 4,
+      "shipping_method": "Standard Delivery",
+      "courier_name": "Ninja Van"
+    },
+    {
+      "shipping_id": 5,
+      "shipping_method": "Economy Delivery",
+      "courier_name": "Flash Express"
+    }
+  ]
+}
