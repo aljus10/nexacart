@@ -219,6 +219,18 @@ export function offlinePlan(question: string, filters: Filters): QueryPlan {
       explanation: 'Analysis highlights key Philippine retail anomalies: Christmas peak spikes (Dec 24–25 up to ₱29K), 11.11 & 12.12 mega sale surges, Dec 15–18 13th-month pay bonuses, 15th/30th payday cycles, and January post-holiday spending pullbacks.'
     });
   }
+  if (/\b(fullscreen|full\s*screen|presentation\s*mode)\b/i.test(q)) {
+    return validatePlan({
+      metric: 'net_sales',
+      dimension: 'none',
+      limit: 10,
+      direction: 'desc',
+      filters,
+      title: 'Fullscreen Presentation Mode',
+      explanation: 'You can toggle fullscreen presentation mode using the "Enter fullscreen mode" button in the assistant panel or by pressing F11 in your browser.',
+      mode: 'conversational'
+    });
+  }
   if (/^(hi|hello|hey|good\s+(morning|afternoon|evening)|who\s+are\s+you|what\s+can\s+you\s+do)\b/i.test(q)) {
     return validatePlan({
       metric: 'net_sales',
