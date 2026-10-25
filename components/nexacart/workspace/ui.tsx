@@ -3,7 +3,8 @@ import {useEffect,useRef,type ReactNode} from 'react';
 import {X,Database,ArrowUpRight} from 'lucide-react';
 export function EmptyState({title='This view is unavailable',message}:{title?:string;message:string}){return <div className="nx-empty"><Database size={23}/><strong>{title}</strong><p>{message}</p></div>;}
 export function Dialog({title,children,onClose,wide=false}:{title:string;children:ReactNode;onClose:()=>void;wide?:boolean}){
- const panel=useRef<HTMLElement>(null),close=useRef(onClose);close.current=onClose;
+ const panel=useRef<HTMLElement>(null),close=useRef(onClose);
+ useEffect(()=>{close.current=onClose;},[onClose]);
  useEffect(()=>{const previous=document.activeElement as HTMLElement|null;panel.current?.focus();const key=(e:KeyboardEvent)=>{if(e.key==='Escape'){e.stopPropagation();close.current();}if(e.key==='Tab'){const nodes=panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input,select,textarea,[tabindex="0"]');if(!nodes?.length)return;const first=nodes[0],last=nodes[nodes.length-1];if(e.shiftKey&&(document.activeElement===first||document.activeElement===panel.current)){e.preventDefault();last.focus();}else if(!e.shiftKey&&(document.activeElement===last||document.activeElement===panel.current)){e.preventDefault();first.focus();}}};document.addEventListener('keydown',key);return()=>{document.removeEventListener('keydown',key);previous?.focus();};},[]);
  return <div className="nx-modal-backdrop" onMouseDown={()=>close.current()}><section className={`nx-modal ${wide?'wide':''}`} ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} onMouseDown={e=>e.stopPropagation()}><div className="nx-modal-head"><h2>{title}</h2><button className="nx-icon" aria-label="Close dialog" onClick={onClose}><X size={18}/></button></div>{children}</section></div>;
 }

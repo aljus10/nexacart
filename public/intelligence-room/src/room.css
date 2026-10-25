@@ -1,0 +1,271 @@
+
+    #nexa-night-hq { --nx-ice:#bde6e8; --nx-gold:#efc58d; width:100%; font-family:Inter,Arial,sans-serif; color:#e9eeea; }
+    #nexa-night-hq * { box-sizing:border-box; }
+    #nexa-night-hq [hidden] { display:none!important; }
+    #nexa-night-hq .nx-room { width:100%; aspect-ratio:16/9; min-height:400px; max-height:880px; background:#0c1115; position:relative; overflow:hidden; isolation:isolate; touch-action:none; }
+    #nexa-night-hq .nx-room.nx-dragging { cursor:grabbing; }
+    #nexa-night-hq .nx-hud-top { position:absolute; top:20px; left:20px; z-index:10; display:flex; align-items:center; gap:10px; touch-action:manipulation; }
+    #nexa-night-hq.nx-starting .nx-hud-top { visibility:hidden; }
+    #nexa-night-hq .nx-quit-btn { display:inline-flex; align-items:center; gap:8px; height:36px; padding:0 15px 0 11px; border-radius:999px; background:rgba(10,22,28,0.76); border:1px solid rgba(130,210,220,0.28); color:#d8f3ef; font-size:11.5px; font-weight:600; letter-spacing:-.15px; cursor:pointer; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); box-shadow:0 4px 16px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.08); transition:transform 150ms ease-out,background-color 150ms ease-out,border-color 150ms ease-out,color 150ms ease-out,box-shadow 150ms ease-out; -webkit-tap-highlight-color:transparent; }
+    #nexa-night-hq .nx-quit-btn svg,#nexa-night-hq .nx-quit-btn i { width:15px; height:15px; stroke-width:2px; transition:transform 150ms ease-out; }
+    #nexa-night-hq .nx-quit-btn:active:not(:disabled) { transform:scale(0.96); }
+    #nexa-night-hq .nx-audio-toggle { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; background:rgba(10,22,28,0.76); border:1px solid rgba(130,210,220,0.28); color:#d8f3ef; cursor:pointer; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); box-shadow:0 4px 16px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.08); transition:transform 150ms ease-out,background-color 150ms ease-out,border-color 150ms ease-out,color 150ms ease-out,box-shadow 150ms ease-out; -webkit-tap-highlight-color:transparent; }
+    #nexa-night-hq .nx-audio-toggle svg,#nexa-night-hq .nx-audio-toggle i { width:15px; height:15px; stroke-width:2px; }
+    #nexa-night-hq .nx-audio-toggle:active:not(:disabled) { transform:scale(0.96); }
+    #nexa-night-hq .nx-audio-toggle.is-muted { color:#f87171; border-color:rgba(248,113,113,0.4); }
+    @media(hover:hover){
+      #nexa-night-hq .nx-quit-btn:hover { background:rgba(18,38,48,0.92); border-color:rgba(56,189,248,0.65); color:#ffffff; box-shadow:0 6px 20px rgba(0,0,0,0.55),0 0 18px rgba(56,189,248,0.25),inset 0 1px 0 rgba(255,255,255,0.16); }
+      #nexa-night-hq .nx-quit-btn:hover svg,#nexa-night-hq .nx-quit-btn:hover i { transform:translateX(-2px); }
+      #nexa-night-hq .nx-audio-toggle:hover { background:rgba(18,38,48,0.92); border-color:rgba(56,189,248,0.65); color:#ffffff; box-shadow:0 6px 20px rgba(0,0,0,0.55),0 0 18px rgba(56,189,248,0.25),inset 0 1px 0 rgba(255,255,255,0.16); }
+    }
+    #nexa-night-hq .nx-quit-btn:focus-visible,#nexa-night-hq .nx-audio-toggle:focus-visible { outline:2px solid #efc58d; outline-offset:3px; }
+    #nexa-night-hq .nx-hud-status { display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px 0 10px; border-radius:999px; background:rgba(8,17,22,0.6); border:1px solid rgba(130,210,220,0.16); color:#8bb5be; font-size:10px; font-weight:600; letter-spacing:.8px; text-transform:uppercase; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); pointer-events:none; user-select:none; }
+    #nexa-night-hq .nx-hud-dot { width:6px; height:6px; border-radius:50%; background:#38bdf8; box-shadow:0 0 8px #38bdf8; animation:nx-hud-pulse 2s ease-in-out infinite; }
+    @keyframes nx-hud-pulse { 0%,100%{opacity:0.5;transform:scale(0.9)} 50%{opacity:1;transform:scale(1.15)} }
+    @media(max-width:600px){ #nexa-night-hq .nx-hud-top{top:12px;left:12px;gap:8px} #nexa-night-hq .nx-quit-btn{height:32px;padding:0 12px 0 8px;font-size:11px} #nexa-night-hq .nx-hud-status{display:none} }
+    #nexa-night-hq .nx-view-controls { position:absolute; left:19px; bottom:18px; z-index:9; display:flex; gap:7px; opacity:.65; }
+    #nexa-night-hq .nx-view-controls:hover,#nexa-night-hq .nx-view-controls:focus-within { opacity:1; }
+    #nexa-night-hq.nx-starting .nx-view-controls { visibility:hidden; }
+    #nexa-night-hq .nx-tools,#nexa-night-hq .nx-view-controls,#nexa-night-hq .nx-composer { touch-action:manipulation; }
+    @media(max-width:600px) { #nexa-night-hq .nx-view-controls { left:12px; bottom:12px; } }
+    #nexa-night-hq .nx-photo,#nexa-night-hq .nx-depth,#nexa-night-hq .nx-software,#nexa-night-hq .nx-atmosphere { position:absolute; inset:0; width:100%; height:100%; display:block; }
+    #nexa-night-hq .nx-photo { object-fit:cover; }
+    #nexa-night-hq .nx-depth,#nexa-night-hq .nx-software { opacity:0; }
+    #nexa-night-hq.nx-webgl .nx-depth { opacity:1; }
+    #nexa-night-hq.nx-canvas .nx-software { opacity:1; }
+    #nexa-night-hq .nx-atmosphere { z-index:4; pointer-events:none; }
+    #nexa-night-hq .nx-boot-cover { position:absolute; inset:0; z-index:20; background:#070b0e; }
+    #nexa-night-hq .nx-loader-canvas { display:block; width:100%; height:100%; }
+    #nexa-night-hq .nx-boot-tools { position:absolute; right:20px; bottom:20px; z-index:25; }
+    #nexa-night-hq .nx-boot-tools .nx-icon { background:transparent; border-color:#c7ded71f; color:#a3bdbb; }
+    #nexa-night-hq.nx-starting .nx-tools { visibility:hidden; }
+    #nexa-night-hq.nx-starting .nx-core-hit { visibility:hidden; }
+    #nexa-night-hq.nx-starting:not(.nx-handoff) .nx-photo,#nexa-night-hq.nx-starting:not(.nx-handoff) .nx-depth,#nexa-night-hq.nx-starting:not(.nx-handoff) .nx-software,#nexa-night-hq.nx-starting:not(.nx-handoff) .nx-monitor,#nexa-night-hq.nx-starting:not(.nx-handoff) .nx-atmosphere { visibility:hidden; }
+    #nexa-night-hq .nx-monitor { position:absolute; top:0; left:0; transform-origin:0 0; background:#071116; overflow:hidden; z-index:2; }
+    #nexa-night-hq .nx-monitor canvas { width:100%; height:100%; display:block; }
+    #nexa-night-hq .nx-monitor::after { content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(124deg,#c4e9ee08,#c4e9ee00 50%,#0002); box-shadow:inset 0 0 24px #0007; }
+    #nexa-night-hq .nx-monitor > .nx-screen-hit { position:absolute; inset:0; width:100%; height:100%; border:0; background:transparent; padding:0; }
+    #nexa-night-hq button,#nexa-night-hq input { font:inherit; }
+    #nexa-night-hq button { -webkit-tap-highlight-color:transparent; }
+    #nexa-night-hq button:focus-visible,#nexa-night-hq input:focus-visible { outline:2px solid #efc58d; outline-offset:3px; }
+    #nexa-night-hq .nx-core-hit { position:absolute; top:0; left:0; z-index:5; width:150px; height:150px; border:0; border-radius:50%; background:transparent; padding:0; will-change:transform; }
+    #nexa-night-hq .nx-tools { position:absolute; z-index:9; bottom:18px; right:19px; display:flex; gap:7px; opacity:.5; transition:opacity 200ms; }
+    #nexa-night-hq .nx-tools:hover,#nexa-night-hq .nx-tools:focus-within { opacity:1; }
+    #nexa-night-hq .nx-icon { display:grid; place-items:center; width:36px; height:36px; border:1px solid #c2d9d52b; border-radius:50%; background:#0d191b70; color:#d5e4dd; padding:8px; backdrop-filter:blur(9px); cursor:pointer; transition:transform 150ms ease-out,background-color 150ms ease-out,border-color 150ms ease-out,color 150ms ease-out; }
+    #nexa-night-hq .nx-icon:active:not(:disabled) { transform:scale(0.96); }
+    @media(hover:hover) {
+      #nexa-night-hq .nx-icon:hover { background:#152b3090; border-color:#81d0d666; color:#ffffff; }
+      #nexa-night-hq .nx-quit:hover { background:#2a111490; border-color:#f8717188; color:#fca5a5; }
+    }
+    #nexa-night-hq .nx-icon svg { width:16px; height:16px; }
+    #nexa-night-hq .nx-icon:disabled { opacity:.35; cursor:not-allowed; }
+    #nexa-night-hq .nx-composer { position:absolute; z-index:12; bottom:27px; left:50%; translate:-50% 0; width:min(540px,calc(100% - 32px)); padding:10px 12px; border:1px solid #b7dadb66; border-radius:12px; display:flex; flex-direction:column; gap:8px; color:#dceee9; background:#091d23ed; box-shadow:0 0 45px #81d0d622,0 14px 40px #0007; backdrop-filter:blur(8px); }
+    #nexa-night-hq .nx-composer-chips { display:flex; align-items:center; gap:6px; overflow-x:auto; width:100%; padding-bottom:2px; }
+    #nexa-night-hq .nx-composer-chips::-webkit-scrollbar { display:none; }
+    #nexa-night-hq .nx-chip { padding:3px 9px; border-radius:999px; background:rgba(20, 50, 60, 0.65); border:1px solid rgba(56, 189, 248, 0.35); color:#94dce3; font-size:10.5px; font-weight:500; cursor:pointer; white-space:nowrap; transition:all 150ms ease; font-family:inherit; }
+    #nexa-night-hq .nx-chip:hover { background:rgba(56, 189, 248, 0.25); border-color:#38bdf8; color:#ffffff; }
+    #nexa-night-hq .nx-composer-row { display:flex; align-items:center; gap:8px; width:100%; }
+    #nexa-night-hq .nx-composer input { flex:1; min-width:0; color:#e2f0ea; font-size:14px; border:0; background:transparent; padding:8px 6px; }
+    #nexa-night-hq .nx-composer input::placeholder { color:#a4bfc0; opacity:1; }
+    #nexa-night-hq .nx-composer .nx-icon { border-radius:6px; flex-shrink:0; }
+    #nexa-night-hq .nx-submit { background:#bfdbd3; color:#173235; border:0; }
+    #nexa-night-hq .nx-projection { position:absolute; top:0; left:0; z-index:7; width:440px; transform-origin:50% 100%; pointer-events:none; color:#d8f3ef; text-shadow:0 0 10px #59cfddaa,0 2px 5px #001116; will-change:transform; }
+    #nexa-night-hq .nx-answer { position:relative; padding:23px 27px; font-size:16px; line-height:1.65; font-weight:400; margin:0; background:linear-gradient(100deg,#112e371b,#163a4280 45%,#112e371b); border-block:1px solid #a6e0e65c; backdrop-filter:blur(3px); clip-path:polygon(0 7px,7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%); animation:nx-materialize 650ms cubic-bezier(.16,1,.3,1) both; }
+    #nexa-night-hq .nx-answer::after { content:''; position:absolute; inset:0; pointer-events:none; background:repeating-linear-gradient(0deg,#a4e5ed00 0 3px,#a4e5ed08 3px 4px); }
+    #nexa-night-hq .nx-projection::before,#nexa-night-hq .nx-projection::after { content:''; position:absolute; top:-5px; bottom:-5px; width:9px; border-block:1px solid #b8edf0c2; }
+    #nexa-night-hq .nx-projection::before { left:-5px; border-left:1px solid #b8edf0b3; }
+    #nexa-night-hq .nx-projection::after { right:-5px; border-right:1px solid #b8edf0b3; }
+    #nexa-night-hq .nx-sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @keyframes nx-materialize { from { opacity:0; filter:blur(6px); translate:0 17px; } to { opacity:1; filter:blur(0); translate:0 0; } }
+    @media(max-width:600px) { #nexa-night-hq .nx-room { min-height:470px; } #nexa-night-hq .nx-projection { width:calc(100% - 42px); max-width:420px; } #nexa-night-hq .nx-answer { padding:17px 20px; font-size:14px; } #nexa-night-hq .nx-composer { bottom:20px; } #nexa-night-hq .nx-composer input { font-size:16px; padding:8px 5px; } #nexa-night-hq .nx-tools { right:12px; bottom:12px; } }
+    @media(pointer:coarse) { #nexa-night-hq .nx-icon { width:44px; height:44px; } }
+    @media(prefers-reduced-motion:reduce) { #nexa-night-hq * { animation:none!important; transition:none!important; } }
+  
+
+    #nexa-night-hq .nx-blueprint { position:absolute; top:0; left:0; z-index:1; transform-origin:0 0; pointer-events:none; mix-blend-mode:screen; opacity:.78; }
+    #nexa-night-hq .nx-hq-sign { position:absolute; top:0; left:0; z-index:1; transform-origin:0 0; pointer-events:none; width:440px; height:60px; display:grid; place-items:center; font:400 32px/1.2 Arial,sans-serif; letter-spacing:6px; text-transform:uppercase; color:#e4d0ad; text-shadow:0 0 9px #efc58d88,0 2px 5px #000; }
+    #nexa-night-hq .nx-hotspot {
+      position:absolute;
+      top:0;
+      left:0;
+      z-index:6;
+      min-width:32px;
+      min-height:32px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:2px;
+      padding:4px 6px;
+      border:0;
+      background:transparent;
+      color:#c8e5e1;
+      touch-action:manipulation;
+      white-space:nowrap;
+      font:500 11px/1.2 'Nexa Geist',Arial,sans-serif;
+      letter-spacing:.4px;
+      cursor:pointer;
+      will-change:transform;
+      transition:color 180ms ease-out;
+    }
+    #nexa-night-hq .nx-hotspot:not(:disabled):active {
+      filter:brightness(1.2);
+    }
+    #nexa-night-hq .nx-hotspot .nx-pin {
+      display:inline-block;
+      width:7px;
+      height:7px;
+      border-radius:50%;
+      background:#48e5c2;
+      box-shadow:0 0 8px #48e5c2, 0 0 16px rgba(72,229,194,0.4);
+      flex-shrink:0;
+      animation:nx-pin-pulse 2.2s infinite ease-in-out;
+      transition:transform 180ms cubic-bezier(0.23, 1, 0.32, 1), background-color 180ms ease-out, box-shadow 180ms ease-out;
+    }
+    #nexa-night-hq .nx-hotspot::before {
+      content:'[';
+      color:#56c5b5;
+      font-size:15px;
+      font-weight:300;
+      opacity:.85;
+      transition:transform 180ms cubic-bezier(0.23, 1, 0.32, 1), color 180ms ease-out, opacity 180ms ease-out;
+    }
+    #nexa-night-hq .nx-hotspot::after {
+      content:']';
+      color:#56c5b5;
+      font-size:15px;
+      font-weight:300;
+      opacity:.85;
+      transition:transform 180ms cubic-bezier(0.23, 1, 0.32, 1), color 180ms ease-out, opacity 180ms ease-out;
+    }
+    #nexa-night-hq .nx-hotspot span {
+      background:#07141ad4;
+      border:1px solid rgba(86,197,181,0.25);
+      border-radius:4px;
+      padding:0;
+      margin:0;
+      max-width:0;
+      opacity:0;
+      overflow:hidden;
+      pointer-events:none;
+      transform:scale(0.96) translateX(-4px);
+      text-shadow:0 1px 4px #001017,0 0 8px #001017;
+      transition:max-width 220ms cubic-bezier(0.23, 1, 0.32, 1), opacity 180ms cubic-bezier(0.23, 1, 0.32, 1), transform 180ms cubic-bezier(0.23, 1, 0.32, 1), padding 180ms cubic-bezier(0.23, 1, 0.32, 1), border-color 180ms ease-out;
+    }
+    @media(hover: hover) {
+      #nexa-night-hq .nx-hotspot:hover {
+        color:#f5d7a8;
+      }
+      #nexa-night-hq .nx-hotspot:hover::before {
+        transform:translateX(-3px);
+        color:#f5d7a8;
+        opacity:1;
+      }
+      #nexa-night-hq .nx-hotspot:hover::after {
+        transform:translateX(3px);
+        color:#f5d7a8;
+        opacity:1;
+      }
+      #nexa-night-hq .nx-hotspot:hover .nx-pin {
+        background:#f5d7a8;
+        box-shadow:0 0 10px #f5d7a8, 0 0 18px rgba(245,215,168,0.6);
+        transform:scale(1.2);
+      }
+      #nexa-night-hq .nx-hotspot:hover span {
+        max-width:200px;
+        opacity:1;
+        pointer-events:auto;
+        padding:4px 8px;
+        margin-left:3px;
+        transform:scale(1) translateX(0);
+        border-color:rgba(245,215,168,0.45);
+        box-shadow:0 0 14px rgba(0,0,0,0.6), 0 0 8px rgba(245,215,168,0.18);
+      }
+    }
+    #nexa-night-hq .nx-hotspot:focus-visible,
+    #nexa-night-hq .nx-hotspot[aria-pressed="true"] {
+      color:#f5d7a8;
+    }
+    #nexa-night-hq .nx-hotspot:focus-visible::before,
+    #nexa-night-hq .nx-hotspot[aria-pressed="true"]::before {
+      transform:translateX(-3px);
+      color:#f5d7a8;
+      opacity:1;
+    }
+    #nexa-night-hq .nx-hotspot:focus-visible::after,
+    #nexa-night-hq .nx-hotspot[aria-pressed="true"]::after {
+      transform:translateX(3px);
+      color:#f5d7a8;
+      opacity:1;
+    }
+    #nexa-night-hq .nx-hotspot:focus-visible .nx-pin,
+    #nexa-night-hq .nx-hotspot[aria-pressed="true"] .nx-pin {
+      background:#f5d7a8;
+      box-shadow:0 0 10px #f5d7a8, 0 0 18px rgba(245,215,168,0.6);
+    }
+    #nexa-night-hq .nx-hotspot:focus-visible span,
+    #nexa-night-hq .nx-hotspot[aria-pressed="true"] span {
+      max-width:200px;
+      opacity:1;
+      pointer-events:auto;
+      padding:4px 8px;
+      margin-left:3px;
+      transform:scale(1) translateX(0);
+      border-color:rgba(245,215,168,0.45);
+    }
+    @keyframes nx-pin-pulse {
+      0%, 100% { opacity:.75; transform:scale(1); }
+      50% { opacity:1; transform:scale(1.28); }
+    }
+    @media(prefers-reduced-motion: reduce) {
+      #nexa-night-hq .nx-hotspot .nx-pin { animation:none; }
+      #nexa-night-hq .nx-hotspot span { transform:none; }
+    }
+    #nexa-night-hq .nx-id-label { position:absolute; left:0; top:0; width:320px; height:480px; transform-origin:0 0; z-index:4; pointer-events:none; }
+    #nexa-night-hq.nx-starting:not(.nx-handoff) .nx-id-label { visibility:hidden; }
+    #nexa-night-hq .nx-desktop { position:absolute; inset:0; z-index:4; background:#060b10; color:#e6eeec; display:block; font:400 14px/1.4 Inter,Arial,sans-serif; touch-action:manipulation; border-radius:6px; overflow:hidden; overscroll-behavior:contain; }
+    #nexa-night-hq .nx-retro-container { position:relative; width:100%; height:100%; min-height:0; overflow:hidden; background:#000; overscroll-behavior:contain; }
+    #nexa-night-hq .nx-retro-frame { width:100%; height:100%; border:0; display:block; overscroll-behavior:contain; }
+    #nexa-night-hq .nx-monitor.nx-using-computer::after { pointer-events:none; z-index:5; opacity:.2; }
+    #nexa-night-hq .nx-products.nx-using-computer > canvas { visibility:hidden; }
+    #nexa-night-hq .nx-products.nx-using-computer {
+      z-index: 6;
+      border-radius: 4px;
+      box-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
+    }
+    @media(max-width:600px) {
+      #nexa-night-hq .nx-products.nx-using-computer {
+        left: 8px !important;
+        top: 40px !important;
+        transform: none !important;
+        width: calc(100% - 16px) !important;
+        height: calc(100% - 90px) !important;
+        border-radius: 6px;
+      }
+    }
+
+    #nexa-night-hq .nx-armour-sprite { position:absolute; left:0; top:0; z-index:3; transform-origin:0 0; pointer-events:none; width:768px; height:1152px; }
+
+    #nexa-night-hq .nx-monitor,
+    #nexa-night-hq .nx-blueprint,
+    #nexa-night-hq .nx-hq-sign,
+    #nexa-night-hq .nx-armour-sprite,
+    #nexa-night-hq .nx-real-sprite,
+    #nexa-night-hq .nx-hotspot {
+      will-change: transform;
+      contain: layout paint;
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+    }
+
+    #nexa-night-hq .nx-objects,#nexa-night-hq .nx-objects-software { position:absolute; inset:0; width:100%; height:100%; z-index:3; pointer-events:none; }
+    #nexa-night-hq.nx-starting:not(.nx-handoff) .nx-objects,#nexa-night-hq.nx-starting:not(.nx-handoff) .nx-objects-software { visibility:hidden; }
+
+    #nexa-night-hq.nx-starting:not(.nx-handoff) .nx-objects-software { visibility:hidden; }
+
+#nexa-night-hq .nx-real-props { position:absolute; inset:0; z-index:3; pointer-events:none; }
+#nexa-night-hq .nx-real-sprite { position:absolute; top:0; left:0; transform-origin:0 0; pointer-events:none; }
+#nexa-night-hq .nx-real-canvas { position:absolute; inset:0; z-index:3; width:100%; height:100%; pointer-events:none; }
+#nexa-night-hq.nx-starting:not(.nx-handoff) .nx-real-props,#nexa-night-hq.nx-starting:not(.nx-handoff) .nx-real-canvas { visibility:hidden; }
+#nexa-night-hq.nx-real-webgl .nx-real-props { display:none; }
+
+#nexa-night-hq .cursor-interaction { cursor:pointer; }

@@ -219,15 +219,15 @@ export function offlinePlan(question: string, filters: Filters): QueryPlan {
       explanation: 'Analysis highlights key Philippine retail anomalies: Christmas peak spikes (Dec 24–25 up to ₱29K), 11.11 & 12.12 mega sale surges, Dec 15–18 13th-month pay bonuses, 15th/30th payday cycles, and January post-holiday spending pullbacks.'
     });
   }
-  if (/\b(fullscreen|full\s*screen|presentation\s*mode)\b/i.test(q)) {
+  if (/\b(jarvis|fullscreen|full\s*screen|presentation\s*mode|hq\s*room|intelligence\s*room)\b/i.test(q)) {
     return validatePlan({
       metric: 'net_sales',
       dimension: 'none',
       limit: 10,
       direction: 'desc',
       filters,
-      title: 'Fullscreen Presentation Mode',
-      explanation: 'You can toggle fullscreen presentation mode using the "Enter fullscreen mode" button in the assistant panel or by pressing F11 in your browser.',
+      title: 'Polangui HQ Jarvis',
+      explanation: 'Enter Polangui HQ Jarvis with live cursor parallax and real-time commerce intelligence.',
       mode: 'conversational'
     });
   }
@@ -244,8 +244,8 @@ export function offlinePlan(question: string, filters: Filters): QueryPlan {
     });
   }
   if (/\b(last|previous|this|today|yesterday|month|week|january|february|march|april|may|june|july|august|september|october|november|december|where|between|since|before|after|only)\b|\d{4}-\d{2}/.test(q)) throw new Error('The offline question parser cannot apply those conditions reliably. Use the date and category filters above, or connect Gemini for natural-language filters.');
-  let metric: Metric = /average|\baov\b/.test(q) ? 'aov' : /gross/.test(q) ? 'gross_sales' : /discount/.test(q) ? 'discounts' : /shipping fee/.test(q) ? 'shipping_fees' : /total paid/.test(q) ? 'total_paid' : /order items|order-item|line items/.test(q) ? 'items' : /units|quantity/.test(q) ? 'units' : /order/.test(q) ? 'orders' : 'net_sales';
-  let dimension: Dimension = /seller|shop|store/.test(q) ? 'seller' : /categor/.test(q) ? 'category' : /product/.test(q) ? 'product' : /brand/.test(q) ? 'brand' : /cit(?:y|ies)/.test(q) ? 'city' : /payment/.test(q) ? 'payment' : /courier/.test(q) ? 'courier' : /shipping method/.test(q) ? 'shipping' : /daily|per day|by date|trend/.test(q) ? 'date' : 'none';
+  const metric: Metric = /average|\baov\b/.test(q) ? 'aov' : /gross/.test(q) ? 'gross_sales' : /discount/.test(q) ? 'discounts' : /shipping fee/.test(q) ? 'shipping_fees' : /total paid/.test(q) ? 'total_paid' : /order items|order-item|line items/.test(q) ? 'items' : /units|quantity/.test(q) ? 'units' : /order/.test(q) ? 'orders' : 'net_sales';
+  const dimension: Dimension = /seller|shop|store/.test(q) ? 'seller' : /categor/.test(q) ? 'category' : /product/.test(q) ? 'product' : /brand/.test(q) ? 'brand' : /cit(?:y|ies)/.test(q) ? 'city' : /payment/.test(q) ? 'payment' : /courier/.test(q) ? 'courier' : /shipping method/.test(q) ? 'shipping' : /daily|per day|by date|trend/.test(q) ? 'date' : 'none';
   if (!/sales|revenue|order|units|quantity|seller|shop|store|categor|product|brand|cit(?:y|ies)|payment|courier|shipping|discount|paid|aov/.test(q)) throw new Error('Try a question about sales, orders, units, sellers, products, payments, or cities.');
   if (/\b(and|versus|vs|for|in|with|without|during)\b/.test(q)) throw new Error('The offline parser supports one metric and one grouping. Split this into two questions, or connect Gemini.');
   if (/average/.test(q) && !/average order value/.test(q)) throw new Error('Offline averages support average order value only.');

@@ -3,7 +3,21 @@ import {tableNames,hideTables,validatePlan,type TableName} from '@/lib/nexacart/
 export const dynamic = 'force-dynamic';
 export async function POST(request:Request){
   const origin=request.headers.get('Origin');
-  if(origin&&origin!==new URL(request.url).origin)return errorJSON('Cross-origin requests are not allowed.',403);
+  if(origin){
+    const reqUrl=new URL(request.url);
+    const isLoopback=(h:string)=>h==='localhost'||h==='127.0.0.1'||h==='[::1]'||h==='::1';
+    const fwdHost=request.headers.get('x-forwarded-host')||request.headers.get('host');
+    const fwdProto=request.headers.get('x-forwarded-proto')||reqUrl.protocol.replace(':','');
+    const expectedOrigin=fwdHost?`${fwdProto}://${fwdHost}`:reqUrl.origin;
+    let allowed=origin===reqUrl.origin||origin===expectedOrigin;
+    try{
+      const oUrl=new URL(origin);
+      if(isLoopback(oUrl.hostname)&&isLoopback(reqUrl.hostname)&&oUrl.port===reqUrl.port&&oUrl.protocol===reqUrl.protocol){
+        allowed=true;
+      }
+    }catch{}
+    if(!allowed)return errorJSON('Cross-origin requests are not allowed.',403);
+  }
   if(!request.headers.get('content-type')?.includes('application/json'))return errorJSON('JSON is required.',415);
   if(Number(request.headers.get('content-length')||0)>8192)return errorJSON('Question too long.',413);
   try {

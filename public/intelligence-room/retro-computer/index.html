@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nexa // Retro OS Workstation</title>
+    <script type="module" crossorigin src="./assets/js/index.html-CpZHh-DQ.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/css/index-BorgZbZl.css">
+    <style>
+      :root {
+        --nexa-cyan: #00e5ff;
+        --nexa-dark: #060b10;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background: radial-gradient(circle at 50% 30%, #0d1b26 0%, #05080c 100%);
+        user-select: none;
+        overflow: hidden;
+        overscroll-behavior: contain;
+      }
+      /* CRT scanline overlay */
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+        background-size: 100% 4px;
+        pointer-events: none;
+        z-index: 9998;
+        opacity: 0.6;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        body::after {
+          opacity: 0.2;
+        }
+      }
+      app-icon {
+        pointer-events: auto !important;
+        cursor: pointer;
+        transition-property: transform, filter;
+        transition-duration: 150ms;
+        transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+      }
+      @media (hover: hover) {
+        app-icon:hover {
+          transform: translateY(-2px);
+          filter: drop-shadow(0 4px 12px rgba(0, 229, 255, 0.35));
+        }
+      }
+      app-icon:not([disabled]):active {
+        transform: scale(0.96);
+      }
+      .window {
+        overscroll-behavior: contain;
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(0, 229, 255, 0.25);
+        border-radius: 6px;
+        overflow: hidden;
+        background-color: #060b10 !important;
+      }
+      [data-window-content],
+      .window iframe,
+      iframe {
+        background-color: #060b10 !important;
+      }
+      .exit-hint {
+        position: fixed;
+        bottom: 12px;
+        right: 16px;
+        font-family: monospace;
+        font-size: 11px;
+        letter-spacing: 0.5px;
+        color: rgba(148, 163, 184, 0.7);
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        padding: 5px 10px;
+        border-radius: 4px;
+        z-index: 50;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        backdrop-filter: blur(4px);
+      }
+      .exit-hint kbd {
+        background: rgba(56, 189, 248, 0.15);
+        color: #38bdf8;
+        padding: 1px 5px;
+        border-radius: 3px;
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body class="bg-black text-white min-h-screen overflow-hidden">
+    <!-- Real-time Live Status Bar (Nexa OS, live ticking clock) -->
+    <desktop-status></desktop-status>
+
+    <!-- Desktop Area -->
+    <main class="pt-8 p-4 h-screen" data-section-name="desktop-area">
+      <!-- Desktop Icons -->
+      <div
+        class="relative flex flex-wrap flex-col gap-6 content-start h-full pointer-events-none z-[1] pt-6 pl-4"
+      >
+        <app-icon
+          id="nexadrive-launcher"
+          target="nexadrive-window"
+          label="NexaDrive"
+          icon="<img src='nexadrive/favicon.svg' class='w-13 h-13 object-contain rounded-xl shadow-lg border border-cyan-400/30' />"
+        ></app-icon>
+        <app-icon
+          id="notes-launcher"
+          file="assets/files/notepad.txt"
+          label="Notes.txt"
+        ></app-icon>
+      </div>
+
+      <div class="exit-hint">
+        <span><kbd>WASD</kbd> / <kbd>Arrows</kbd> Fly</span>
+        <span><kbd>Space</kbd> Boost</span>
+        <span><kbd>Shift</kbd> Brake</span>
+        <span><kbd>ESC</kbd> Workshop</span>
+      </div>
+    </main>
+
+    <!-- Windows (z-index: 100+) -->
+    <app-window
+      id="nexadrive-window"
+      title="NexaDrive // Orbital Flight Racer"
+      width="1000px"
+      height="580px"
+      src="./nexadrive/index.html"
+    ></app-window>
+
+    <!-- Context Menus -->
+    <div
+      id="desktop-context-menu"
+      popover="auto"
+      class="app-widget p-2 m-0 border-2 border-cyan-500/40 bg-[#0b141d]/95 backdrop-blur shadow-2xl rounded-md"
+    >
+      <div class="grid place-items-center gap-1">
+        <button
+          data-exit-computer-mode="true"
+          class="w-full text-left px-4 py-2 text-sm text-cyan-300 hover:bg-cyan-500/20 rounded transition-colors whitespace-nowrap font-mono flex items-center gap-2"
+        >
+          <span>⏏</span> Exit Computer Mode
+        </button>
+        <button
+          data-show-screensaver
+          class="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/10 rounded transition-colors whitespace-nowrap font-mono flex items-center gap-2"
+        >
+          <span>🖥</span> Show Screensaver
+        </button>
+      </div>
+    </div>
+
+    <!-- CRT Bouncing Screensaver -->
+    <div
+      id="desktop-screensaver"
+      class="absolute inset-0 bg-black/75 pointer-events-none"
+      popover="auto"
+    >
+      <div class="shop-x">
+        <div class="shop bg-[#0b141d] border-2 border-cyan-400/50 rounded-2xl grid place-items-center p-3 shadow-[0_0_30px_rgba(0,229,255,0.4)]">
+          <svg class="w-16 h-16" viewBox="0 0 64 64"><rect width="64" height="64" rx="18" fill="#0d1b26"/><path d="m17 44 8-24h8l-3 10 11-10h9L36 33l5 11h-9l-4-9-3 9z" fill="#00e5ff"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Single-click support and auto-launch
+      window.addEventListener('DOMContentLoaded', () => {
+        const focusGame = () => {
+          const driveIframe = document.querySelector('#nexadrive-window iframe');
+          if (driveIframe && driveIframe.contentWindow) {
+            try { driveIframe.contentWindow.focus(); } catch (err) {}
+          }
+        };
+
+        const sizeWindow = (win) => {
+          if (!win) return;
+          const innerWin = win.querySelector('.window');
+          if (innerWin) {
+            innerWin.style.width = 'calc(100% - 24px)';
+            innerWin.style.height = 'calc(100% - 46px)';
+            innerWin.style.left = '12px';
+            innerWin.style.top = '36px';
+          }
+        };
+
+        // Single click launcher for icon
+        const launcher = document.getElementById('nexadrive-launcher');
+        if (launcher) {
+          launcher.addEventListener('click', (e) => {
+            const win = document.getElementById('nexadrive-window');
+            if (win && typeof win.open === 'function') {
+              win.open();
+              sizeWindow(win);
+              setTimeout(focusGame, 100);
+            } else if (typeof launcher.openWindow === 'function') {
+              launcher.openWindow();
+              setTimeout(() => {
+                const newWin = document.getElementById('nexadrive-window');
+                sizeWindow(newWin);
+                setTimeout(focusGame, 100);
+              }, 60);
+            }
+          });
+        }
+
+        const notesLauncher = document.getElementById('notes-launcher');
+        if (notesLauncher) {
+          notesLauncher.addEventListener('click', () => {
+            if (typeof notesLauncher.openFile === 'function') {
+              notesLauncher.openFile();
+            }
+          });
+        }
+
+        // Auto-open NexaDrive after 200ms initial desktop mount
+        setTimeout(() => {
+          const driveWin = document.getElementById('nexadrive-window');
+          if (driveWin && typeof driveWin.open === 'function') {
+            driveWin.open();
+            sizeWindow(driveWin);
+            setTimeout(focusGame, 300);
+          }
+        }, 200);
+
+        const driveWinEl = document.getElementById('nexadrive-window');
+        if (driveWinEl) {
+          driveWinEl.addEventListener('pointerdown', focusGame);
+          driveWinEl.addEventListener('click', focusGame);
+        }
+
+        // Listen for parent messages (e.g., audio muting when stepping away)
+        window.addEventListener('message', (ev) => {
+          if (!ev.data) return;
+          const driveIframe = document.querySelector('#nexadrive-window iframe');
+          if (ev.data.type === 'PAUSE_ALL_AUDIO' || ev.data.type === 'SUSPEND_AUDIO') {
+            if (driveIframe && driveIframe.contentWindow) {
+              try {
+                driveIframe.contentWindow.postMessage({ type: 'PAUSE_AUDIO' }, '*');
+              } catch (err) {}
+            }
+          } else if (ev.data.type === 'RESUME_AUDIO') {
+            if (driveIframe && driveIframe.contentWindow) {
+              try {
+                driveIframe.contentWindow.postMessage({ type: 'RESUME_AUDIO' }, '*');
+              } catch (err) {}
+            }
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

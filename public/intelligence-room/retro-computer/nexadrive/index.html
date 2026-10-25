@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080e14">
+  <meta name="description" content="NexaDrive. An original orbital flight racer. Choose your world, thread the gates, and chase the perfect run.">
+  <title>NexaDrive — Beyond the road</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="nexadrive" data-phase="loading">
+  <canvas id="flight-view" aria-label="NexaDrive space flight. Fly through luminous gates with WASD or arrow keys. Hold Space to boost."></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="NexaDrive home"><span class="brand-symbol" aria-hidden="true">N</span><span>NEXA<span class="brand-light">DRIVE</span></span></a>
+    <span class="top-caption">AN ORBITAL FLIGHT EXPERIENCE</span>
+    <div class="top-actions"><button id="sound-toggle" type="button" aria-pressed="false">Sound off</button><button id="quality-toggle" type="button" aria-label="Graphics quality: Auto">Auto</button><button id="fullscreen" type="button" aria-label="Enter full screen">[ &nbsp; ]</button><button id="pause-button" type="button" hidden>Pause</button></div>
+  </header>
+  <section id="menu" class="menu" aria-label="Choose your NexaDrive flight">
+    <div class="hero-copy"><p class="eyebrow"><span></span> NEXACART FLIGHT LAB / 001</p><h1>BEYOND<br>THE <em>ROAD.</em></h1><p class="hero-description">Leave the ground behind.<br>Find your line among the stars.</p><div class="launch-row"><button id="launch" class="primary" type="button">Launch flight <span aria-hidden="true">↗</span></button><button id="help-button" class="text-button" type="button">Flight controls <span aria-hidden="true">↗</span></button></div><p class="best-line" id="menu-best">Your first orbit is waiting.</p></div>
+    <div class="ship-caption"><span>NEXA / NX–01</span><strong>Kestrel interceptor</strong><span>TWIN ION DRIVE · FLIGHT READY</span></div>
+    <div class="course-picker"><div class="picker-title"><span>CHOOSE YOUR ORBIT</span><span>3 WORLDS. ONE PERFECT LINE.</span></div><div class="course-options" role="group" aria-label="Flight courses">
+      <button type="button" class="course-option selected" data-course="aster" aria-pressed="true"><span class="course-art aster" aria-hidden="true"><i></i></span><span class="course-copy"><small>01 / THE LUNAR BELT</small><strong>Aster Reach</strong><span>Lunar slalom <b>Flow</b></span></span><span class="course-arrow" aria-hidden="true">↗</span></button>
+      <button type="button" class="course-option" data-course="ember" aria-pressed="false"><span class="course-art ember" aria-hidden="true"><i></i></span><span class="course-copy"><small>02 / THE RED FRONTIER</small><strong>Ember Rift</strong><span>Vertical switchbacks <b>Technical</b></span></span><span class="course-arrow" aria-hidden="true">↗</span></button>
+      <button type="button" class="course-option" data-course="halo" aria-pressed="false"><span class="course-art halo" aria-hidden="true"><i></i></span><span class="course-copy"><small>03 / THE OUTER RING</small><strong>Halo Meridian</strong><span>Orbital sprint <b>Fast</b></span></span><span class="course-arrow" aria-hidden="true">↗</span></button>
+    </div></div>
+    <footer class="menu-footer"><span>BUILT FOR THE MOMENT YOU LET GO.</span><span>WASD / ARROWS TO FLY <i>·</i> SPACE TO BOOST</span></footer>
+  </section>
+  <section id="hud" class="hud" aria-label="Flight instruments" hidden>
+    <div class="race-top"><div><span class="hud-label" id="course-name">Aster Reach</span><strong id="timer">00:00.00</strong></div><div class="gate-counter"><span class="hud-label">GATES CLEARED</span><strong><span id="gates">0</span><small id="gate-total"> / 24</small></strong></div></div>
+    <div id="countdown" class="countdown" aria-live="polite" hidden>3</div>
+    <div id="feedback" class="feedback" aria-hidden="true"></div>
+    <div class="flight-bottom"><div class="velocity"><span class="hud-label">VELOCITY / M·S⁻¹</span><strong id="speed">000</strong><div class="boost-label"><span>ION RESERVE</span><span id="boost-value">100%</span></div><div class="meter" role="progressbar" aria-label="Boost energy" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" id="boost-meter"><i></i></div><div class="shield-line"><span>HULL</span><span id="shield">100%</span></div></div><div class="route-info"><div class="minimap-wrap"><canvas id="minimap" width="220" height="138" role="img" aria-label="Current course and ship position"></canvas><span id="progress-label">0% COMPLETE</span></div><button id="mouse-mode" type="button" aria-pressed="false">Mouse steering off</button><span class="flight-hint">WASD / ARROWS · SPACE BOOST · SHIFT BRAKE</span></div></div>
+    <div id="touch-controls" class="touch-controls"><div class="dpad"><button data-input="up" aria-label="Fly up" type="button">↑</button><button data-input="left" aria-label="Fly left" type="button">←</button><button data-input="down" aria-label="Fly down" type="button">↓</button><button data-input="right" aria-label="Fly right" type="button">→</button></div><button data-input="boost" class="touch-boost" aria-label="Hold to boost" type="button">BOOST</button></div>
+  </section>
+  <section id="pause-panel" class="overlay-panel" role="dialog" aria-labelledby="pause-title" aria-modal="true" hidden><div class="panel-inner"><p class="eyebrow">TAKE A BREATH</p><h2 id="pause-title">Holding orbit.</h2><p>Your run is paused. Pick up right where you left off.</p><button id="resume" class="primary" type="button">Resume flight <span>↗</span></button><button id="restart" class="secondary" type="button">Restart this orbit</button><button id="exit-flight" class="text-button" type="button">Back to flight deck</button></div></section>
+  <section id="results" class="overlay-panel results" role="dialog" aria-labelledby="results-title" aria-modal="true" hidden><div class="panel-inner"><p class="eyebrow" id="result-eyebrow">ORBIT COMPLETE</p><div class="grade" id="grade">S</div><h2 id="results-title">A line worth chasing.</h2><p id="result-message">Every gate. Every moment.</p><dl class="results-grid"><div><dt>FLIGHT TIME</dt><dd id="result-time">—</dd></div><div><dt>FLIGHT SCORE</dt><dd id="result-score">—</dd></div><div><dt>GATES CLEARED</dt><dd id="result-gates">—</dd></div><div><dt>PERFECT LINES</dt><dd id="result-perfect">—</dd></div></dl><p id="record-message" class="record-message"></p><button id="fly-again" class="primary" type="button">Fly again <span>↗</span></button><button id="choose-orbit" class="secondary" type="button">Choose another orbit</button></div></section>
+  <section id="help" class="overlay-panel" role="dialog" aria-labelledby="help-title" aria-modal="true" hidden><div class="panel-inner help-inner"><p class="eyebrow">FLIGHT SCHOOL / NX–01</p><h2 id="help-title">Trust your line.</h2><p>Your ship follows the orbit automatically. You control its position inside the flight corridor.</p><dl class="controls-list"><div><dt>W A S D / Arrow keys</dt><dd>Fly up, left, down, right</dd></div><div><dt>Hold Space</dt><dd>Ion boost. Recharges as you fly.</dd></div><div><dt>Hold Shift</dt><dd>Brake for a tighter approach</dd></div><div><dt>Esc / P</dt><dd>Pause or resume</dd></div><div><dt>R</dt><dd>Restart your flight</dd></div><div><dt>Mouse steering</dt><dd>Enable during flight, then move the cursor. On touch screens, use the controls or drag the view.</dd></div></dl><p class="help-goal">Pass through the glowing gates. Aim for the center to earn perfect-line bonuses. Dodge the debris and protect your hull. Missing a gate adds 2 seconds to your result.</p><button id="close-help" class="primary" type="button">Ready to fly <span>↗</span></button></div></section>
+  <div id="load-cover" class="load-cover"><span class="load-mark">N</span><span>PREPARING YOUR ORBIT</span></div>
+  <div class="hit-overlay" aria-hidden="true"></div><div id="announcer" class="sr-only" role="status" aria-live="polite"></div>
+</main>
+<script src="vendor/nexadrive.js" defer></script>
+<script>
+  window.addEventListener('click', () => {
+    try { window.focus(); } catch (err) {}
+  }, true);
+  window.addEventListener('load', () => {
+    try { window.focus(); } catch (err) {}
+  });
+  window.addEventListener('keydown', (e) => {
+    const help = document.getElementById('help');
+    const isHelpOpen = help && !help.hidden;
+    if (e.key === 'Escape' && !isHelpOpen && document.getElementById('nexadrive')?.dataset.phase === 'menu') {
+      try { window.parent.postMessage({ type: 'EXIT_COMPUTER_MODE' }, '*'); } catch (err) {}
+    }
+  });
+  let wasAudioMutedByBridge = false;
+  window.addEventListener('message', (ev) => {
+    if (!ev.data) return;
+    const soundBtn = document.getElementById('sound-toggle');
+    if (ev.data.type === 'PAUSE_AUDIO') {
+      if (soundBtn && soundBtn.getAttribute('aria-pressed') === 'true') {
+        wasAudioMutedByBridge = true;
+        soundBtn.click();
+      }
+    } else if (ev.data.type === 'RESUME_AUDIO') {
+      if (soundBtn && wasAudioMutedByBridge && soundBtn.getAttribute('aria-pressed') === 'false') {
+        wasAudioMutedByBridge = false;
+        soundBtn.click();
+      }
+    }
+  });
+</script>
+</body>
+</html>

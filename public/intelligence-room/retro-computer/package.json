@@ -1,0 +1,17 @@
+{
+  "name": "retro-computer-os",
+  "version": "1.0.0",
+  "description": "Standalone retro CRT desktop computer OS with NexaDrive orbital racer",
+  "main": "serve.js",
+  "scripts": {
+    "start": "node serve.js"
+  },
+  "keywords": [
+    "retro-os",
+    "desktop",
+    "web-desktop",
+    "nexadrive"
+  ],
+  "author": "",
+  "license": "ISC"
+}

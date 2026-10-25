@@ -1,0 +1,44 @@
+========================================================================
+             POLANGUI HQ WORKSTATION // DEVELOPER CREDITS & NOTES       
+========================================================================
+
+[ ARCADE FLIGHT SIMULATION ]
+------------------------------------------------------------------------
+Game Title       : NexaDrive // Orbital Flight Racer
+Author & Design  : Nexa Intelligence & Polangui HQ Engineering
+Architecture     : 100% Original Standalone WebGL / Three.js Engine
+Audio Synthesis  : Real-time Web Audio API Procedural Synthesizer
+                   (Dual-oscillator Ion Engine, Sub-bass pulse, zero external audio assets)
+Controls         : [W/A/S/D] or [Arrows] Flight Pitch/Roll
+                   [Space] Afterburner Boost
+                   [Shift] Airbrake & Precision Glide
+                   [Esc] Emergency System Exit
+
+Custom orbital ring procedural generation, dynamic particle field,
+and high-G flight mechanics engineered natively for Polangui HQ Lab.
+Independent, zero external platform dependencies or third-party web credits.
+
+
+[ 3D WORKSHOP ENVIRONMENT & PROPS ]
+------------------------------------------------------------------------
+• Iron Man Mark VII Suit : jcp0072 / @jordi_creates & xt688077
+  Character design © Marvel. Sourced for non-commercial educational use.
+
+• Gaming PC Rig          : Yolala1232 (CC BY 4.0)
+  https://sketchfab.com/3d-models/gaming-desktop-pc-d1d8282c9916438091f11aeb28787b66
+
+• Ceramic Cup            : James Ray Cock, Rico Cilliers, Jurita Burger (Poly Haven CC0)
+  https://polyhaven.com/a/tea_set_01
+
+• Desk Lamp Arm          : Yann Kervran, Kuutti Siitonen (Poly Haven CC0)
+  https://polyhaven.com/a/desk_lamp_arm_01
+
+
+[ SYSTEM & LIBRARIES ]
+------------------------------------------------------------------------
+• Three.js 3D Engine     : mrdoob (MIT License)
+• Lucide Icons           : Lucide Contributors (ISC License)
+• Nexa Intelligence Room : Polangui HQ Core & Parallax Interface
+
+========================================================================
+[END OF FILE - NEXA OS v2.4]

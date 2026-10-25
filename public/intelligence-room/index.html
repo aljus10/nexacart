@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Nexa · Polangui HQ</title>
+  <link rel="stylesheet" href="src/room.css?v=bulletproof-v2">
+  <style>html,body{margin:0;min-height:100%;background:#0c1115}#nexa-night-hq .nx-room{aspect-ratio:auto;height:100svh;min-height:400px;max-height:none}</style>
+</head>
+<body>
+<div id="nexa-night-hq" class="nx-starting" data-phase="tracing">
+  
+  <section class="nx-room" aria-busy="true" aria-label="Polangui HQ. Move your cursor or drag to look left and right. Select a graph monitor to focus it. Use bracketed actions to toggle the lamp, beam or glass door, inspect the relics and ID, or use the right computer. Use the view controls to turn or reset, and select Nexa to ask a question.">
+    <img class="nx-photo" src="assets/workshop.webp" alt="Dark metal-and-glass workshop with amber mechanical holograms, a central projector, and three monitor displays" draggable="false">
+    <canvas class="nx-depth" aria-hidden="true"></canvas>
+    <canvas class="nx-software" aria-hidden="true"></canvas>
+    <div class="nx-monitor nx-sales" style="width:360px;height:210px"><canvas width="720" height="420" role="img" aria-label="Supporting AI answer graph monitor"></canvas><button type="button" class="nx-screen-hit cursor-interaction" aria-label="Focus supporting AI answer graph"></button></div>
+    <div class="nx-monitor nx-stores" style="width:360px;height:190px"><canvas width="720" height="380" role="img" aria-label="Explore AI answer details and breakdown monitor"></canvas><button type="button" class="nx-screen-hit cursor-interaction" aria-label="Focus explore answer breakdown"></button></div>
+    <div class="nx-monitor nx-products" style="width:760px;height:364px">
+      <canvas width="1520" height="728" role="img" aria-label="Retro Computer Workstation and NexaDrive Flight Display"></canvas>
+      <button type="button" class="nx-screen-hit cursor-interaction" aria-label="Use Retro Computer Workstation"></button>
+      <div id="polangui-desktop" class="nx-desktop" hidden>
+        <div class="nx-retro-container">
+          <iframe id="retro-workstation-frame" src="./retro-computer/index.html" class="nx-retro-frame" title="Retro Computer Workstation" allow="autoplay; fullscreen; gamepad"></iframe>
+        </div>
+      </div>
+    </div>
+<div class="nx-real-props" aria-hidden="true"></div>
+<canvas class="nx-real-canvas" aria-hidden="true"></canvas>
+<canvas class="nx-objects-software" aria-hidden="true"></canvas>
+<canvas class="nx-objects" role="img" aria-label="Detailed downloaded 3D models: gaming PC, articulated lamp, ceramic cup, keyboard, mouse, and helmet"></canvas>
+    <canvas class="nx-blueprint nx-blueprint-left" width="480" height="260" aria-hidden="true"></canvas>
+    <canvas class="nx-blueprint nx-blueprint-right" width="480" height="260" aria-hidden="true"></canvas>
+    <img class="nx-armour-sprite" src="assets/ironman-mark7.webp" width="768" height="1152" alt="Detailed red-and-gold Iron Man Mark VII suit standing on the left floor aisle">
+    <div class="nx-hq-sign">Polangui HQ</div>
+    <button type="button" class="nx-hotspot nx-lamp-hit cursor-interaction" aria-label="Toggle desk lamp" aria-pressed="false" hidden><i class="nx-pin" aria-hidden="true"></i><span>Switch on lamp</span></button>
+    <button type="button" class="nx-hotspot nx-parts-hit cursor-interaction" aria-label="Inspect Iron Man helmet" hidden><i class="nx-pin" aria-hidden="true"></i><span>Inspect armour</span></button>
+    <button type="button" class="nx-hotspot nx-id-hit cursor-interaction" aria-label="Inspect Bicol University ID" hidden><i class="nx-pin" aria-hidden="true"></i><span>Inspect BU ID</span></button>
+    <button type="button" class="nx-hotspot nx-computer-hit cursor-interaction" aria-label="Use Polangui HQ computer" aria-expanded="false" aria-controls="polangui-desktop" hidden><i class="nx-pin" aria-hidden="true"></i><span>Use computer</span></button>
+
+    <canvas class="nx-id-label" width="320" height="480" role="img" aria-label="Bicol University lanyard demo ID for NexaCart. Prototype, not an issued student ID." hidden></canvas>
+    <div class="nx-boot-cover"><canvas class="nx-loader-canvas" role="img" aria-label="Separate Nexa loading screen: a metallic N forms under a moving light, with a thin completion line below it"></canvas></div>
+    <audio id="nx-audio-carplay" src="assets/audio/carplay_connected.mp3" preload="auto" playsinline></audio>
+    <audio id="nx-audio-jarvis" src="assets/audio/jarvis_full_self_introduction.mp3" preload="auto" playsinline></audio>
+    <canvas class="nx-atmosphere" role="img" aria-label="Animated Nexa AI hologram in the interactive workshop"></canvas>
+    <header class="nx-hud-top" aria-label="Room navigation">
+      <button type="button" class="nx-quit-btn cursor-interaction" aria-label="Quit to main website" title="Quit to main website">
+        <i data-lucide="arrow-left" aria-hidden="true"></i>
+        <span>Quit to Website</span>
+      </button>
+      <button type="button" class="nx-audio-toggle cursor-interaction" aria-label="Mute audio" title="Toggle audio mute">
+        <i data-lucide="volume-2" aria-hidden="true"></i>
+      </button>
+      <div class="nx-hud-status" aria-hidden="true">
+        <span class="nx-hud-dot"></span>
+        <span class="nx-hud-title">Polangui HQ · Jarvis</span>
+      </div>
+    </header>
+    <div class="nx-boot-tools"><button type="button" class="nx-icon nx-skip cursor-interaction" aria-label="Skip loading screen"><i data-lucide="chevrons-right" aria-hidden="true"></i></button><button type="button" class="nx-icon nx-retry cursor-interaction" aria-label="Retry loading the room" hidden><i data-lucide="rotate-cw" aria-hidden="true"></i></button></div>
+    <button type="button" class="nx-core-hit cursor-interaction" aria-label="Ask Nexa AI" aria-expanded="false" aria-controls="nx-question-form" disabled></button>
+    <div class="nx-projection" hidden aria-live="polite"><p class="nx-answer"></p></div>
+    <div class="nx-tools" inert><button type="button" class="nx-icon nx-chat cursor-interaction" aria-label="Ask Nexa AI" aria-expanded="false" aria-controls="nx-question-form"><i data-lucide="message-circle" aria-hidden="true"></i></button><button type="button" class="nx-icon nx-replay cursor-interaction" aria-label="Replay loading screen"><i data-lucide="rotate-ccw" aria-hidden="true"></i></button><button type="button" class="nx-icon nx-motion cursor-interaction" aria-label="Pause room animation" aria-pressed="false"><i data-lucide="pause" aria-hidden="true"></i></button><button type="button" class="nx-icon nx-quit cursor-interaction" aria-label="Quit to main website" title="Quit to main website"><i data-lucide="log-out" aria-hidden="true"></i></button></div>
+    <div class="nx-view-controls" inert><button type="button" class="nx-icon nx-look-left cursor-interaction" aria-label="Look left"><i data-lucide="chevron-left" aria-hidden="true"></i></button><button type="button" class="nx-icon nx-home cursor-interaction" aria-label="Reset room view"><i data-lucide="scan" aria-hidden="true"></i></button><button type="button" class="nx-icon nx-look-right cursor-interaction" aria-label="Look right"><i data-lucide="chevron-right" aria-hidden="true"></i></button></div>
+    <form id="nx-question-form" class="nx-composer" hidden aria-label="Ask Nexa AI about your commerce data.">
+      <div class="nx-composer-chips" aria-label="Suggested commerce questions">
+        <button type="button" class="nx-chip cursor-interaction" data-ask="Which 10 stores have the highest net sales?">Top 10 stores</button>
+        <button type="button" class="nx-chip cursor-interaction" data-ask="Show net sales by category">Sales by category</button>
+        <button type="button" class="nx-chip cursor-interaction" data-ask="Sales over time">Sales over time</button>
+        <button type="button" class="nx-chip cursor-interaction" data-ask="Identify anomalies in sales over time">Anomalies & Trends</button>
+      </div>
+      <div class="nx-composer-row">
+        <input type="text" aria-label="Question for Nexa AI" placeholder="Ask Nexa AI about sales, stores, products…" autocomplete="off" maxlength="240">
+        <button type="submit" class="nx-icon nx-submit cursor-interaction" aria-label="Project answer"><i data-lucide="arrow-up" aria-hidden="true"></i></button>
+        <button type="button" class="nx-icon nx-cancel cursor-interaction" aria-label="Close question input"><i data-lucide="x" aria-hidden="true"></i></button>
+      </div>
+    </form>
+    <div class="nx-sr nx-status" role="status" aria-live="polite">Opening Nexa's workshop.</div>
+  </section>
+  
+</div>
+
+  <script src="vendor/lucide.min.js"></script>
+  <script src="src/asset-meta.js?v=bulletproof-v2"></script>
+  <script src="vendor/real-scene.js?v=bulletproof-v2"></script>
+  <script src="src/room.js?v=bulletproof-v2"></script>
+  <script src="src/icons.js"></script>
+</body>
+</html>
