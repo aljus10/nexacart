@@ -377,15 +377,17 @@ export async function answerQuestion(env: RuntimeEnv, question: string, s: Snaps
     planner = 'Offline parser';
   }
   const qLower = question.toLowerCase();
-  if (plan.mode === 'relational' || /display all|show all|list all|year & category|performance analysis/i.test(qLower)) {
-    if (/feb(?:ruary)?\s*2024/i.test(qLower) && (/gross/i.test(qLower) || /seller/i.test(qLower)) && /1[,.]?000/i.test(qLower)) {
+  if (plan.mode === 'relational' || /scenario\s*[1-5]|q[1-5]|question\s*[1-5]|display all|show all|list all|year & category|performance analysis|maria flores|pureskin|shipping id 3|gross sales|high gross|customer order.*payment|seller customer base|specific shipping/i.test(qLower)) {
+    if (/\b(scenario\s*1|q1|question\s*1)\b/i.test(qLower) || /high\s*gross\s*sales/i.test(qLower) || (/feb(?:ruary)?\s*2024/i.test(qLower) && (/gross/i.test(qLower) || /seller/i.test(qLower) || /1[,.]?000/i.test(qLower) || /greater|above|exceed/i.test(qLower)))) {
       plan.relationalScenario = 'scenario_1';
       plan.mode = 'relational';
       plan.filters.from = '2024-02-01';
       plan.filters.to = '2024-02-29';
       plan.filters.min_gross_sales = 1000;
       plan.limit = 100;
-    } else if (/maria\s*flores/i.test(qLower) && /maya/i.test(qLower)) {
+      plan.title = 'Q1 · Feb 2024 High Gross Sales';
+      plan.columns = ['order_number','order_date','product_name','seller','quantity','unit_price','gross_sales'];
+    } else if (/\b(scenario\s*2|q2|question\s*2)\b/i.test(qLower) || /customer\s*order.*payment\s*verification/i.test(qLower) || /maria\s*flores/i.test(qLower)) {
       plan.relationalScenario = 'scenario_2';
       plan.mode = 'relational';
       plan.filters.customer = 'Maria Flores';
@@ -393,7 +395,9 @@ export async function answerQuestion(env: RuntimeEnv, question: string, s: Snaps
       plan.filters.from = '2025-02-01';
       plan.filters.to = '2025-02-28';
       plan.limit = 50;
-    } else if (/pureskin/i.test(qLower) && /(customer|order|buyer)/i.test(qLower)) {
+      plan.title = 'Q2 · Maria Flores Maya Orders';
+      plan.columns = ['order_number','order_date','customer_name','product_name','payment_method','quantity','net_sales'];
+    } else if (/\b(scenario\s*3|q3|question\s*3)\b/i.test(qLower) || /seller\s*customer\s*base/i.test(qLower) || /pureskin/i.test(qLower)) {
       plan.relationalScenario = 'scenario_3';
       plan.mode = 'relational';
       plan.filters.seller = 'PureSkin PH';
@@ -401,7 +405,9 @@ export async function answerQuestion(env: RuntimeEnv, question: string, s: Snaps
       plan.filters.to = '2025-02-28';
       delete plan.filters.shipping_id;
       plan.limit = 50;
-    } else if ((/shipping\s*(?:id)?\s*(?:is|=|:)?\s*3/i.test(qLower) || /spx/i.test(qLower)) && /(cash\s*on\s*delivery|\bcod\b)/i.test(qLower)) {
+      plan.title = 'Q3 · PureSkin PH Customers';
+      plan.columns = ['order_number','order_date','seller','customer_name','product_name','quantity','net_sales'];
+    } else if (/\b(scenario\s*4|q4|question\s*4)\b/i.test(qLower) || /specific\s*shipping.*payment/i.test(qLower) || /shipping\s*(?:id)?\s*(?:is|=|:)?\s*3/i.test(qLower) || ((/cash\s*on\s*delivery|\bcod\b/i.test(qLower)) && /feb(?:ruary)?\s*2025/i.test(qLower))) {
       plan.relationalScenario = 'scenario_4';
       plan.mode = 'relational';
       plan.filters.shipping_id = 3;
@@ -409,10 +415,14 @@ export async function answerQuestion(env: RuntimeEnv, question: string, s: Snaps
       plan.filters.from = '2025-02-01';
       plan.filters.to = '2025-02-28';
       plan.limit = 50;
-    } else if (/year.*categor|categor.*year|supplemental/i.test(qLower) || (/performance/i.test(qLower) && /categor/i.test(qLower))) {
+      plan.title = 'Q4 · Shipping ID 3 COD Orders';
+      plan.columns = ['order_number','order_date','customer_name','product_name','shipping_id','shipping_method','courier_name','payment_method','total_paid'];
+    } else if (/\b(scenario\s*5|q5|question\s*5|supplemental)\b/i.test(qLower) || /year.*categor|categor.*year/i.test(qLower) || /analytical\s*querying|warehouse\s*validation/i.test(qLower) || (/performance/i.test(qLower) && /categor/i.test(qLower))) {
       plan.relationalScenario = 'supplemental';
       plan.mode = 'relational';
       plan.limit = 50;
+      plan.title = 'Supplemental Analytical Validation · Year & Category Performance';
+      plan.columns = ['order_year','category','fact_rows','orders','net_sales','total_fact_rows','category_rank_in_year','year_sales_share_pct'];
     }
   }
   if (plan.mode === 'conversational') {
