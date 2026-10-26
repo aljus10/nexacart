@@ -45,7 +45,7 @@ export default function AnalyticsView({active=true,snapshot,filters,setFilters,h
  const categories=useMemo(()=>executePlan(snapshot,q('net_sales','category',filters)),[snapshot,filters]);
  const breakdownData=useMemo(()=>executePlan(snapshot,q('net_sales',breakdown,filters,6)),[snapshot,filters,breakdown]);
  const metrics=useMemo(()=>(['net_sales','orders','units','aov'] as const).map(id=>{const value=metricValue(snapshot,id,filters),error=metricError(snapshot,id,filters),previous=period?.comparable?metricValue(snapshot,id,period.previous):null;return {id,value,error,change:metricChange(value,previous)};}),[snapshot,filters,period]);
- const setFilter=(key:keyof Filters,value:string)=>setFilters(f=>{const next={...f};if(value)next[key]=value;else delete next[key];return next;});
+ const setFilter=(key:keyof Filters,value:string)=>setFilters(f=>{const next={...f};if(value)(next as Record<string,unknown>)[key]=value;else delete next[key];return next;});
  const toggleFilter=(key:keyof Filters,value:string)=>setFilter(key,filters[key]===value?'':value);
  const dateChange=(value:string)=>{setPreset(value);if(value!=='custom')setFilters(f=>{const {from,to,...rest}=f;return {...rest,...presetDates(snapshot,value)};});};
  const rows=(title:string,dimension:Dimension='none',labels:string[]=[])=>viewRows({table:'fact_order_items',filters,group:{dimension,labels},title});
