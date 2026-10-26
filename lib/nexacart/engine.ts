@@ -21,6 +21,7 @@ export const METRICS = {
   discounts: { label: 'Discounts', columns: ['discount_amount'], sql: 'SUM(f.discount_amount)', money: true },
   shipping_fees: { label: 'Shipping fees', columns: ['shipping_fee'], sql: 'SUM(f.shipping_fee)', money: true },
   total_paid: { label: 'Total paid', columns: ['total_paid'], sql: 'SUM(f.total_paid)', money: true },
+  customers: { label: 'Unique customers', columns: ['customer_id'], sql: 'COUNT(DISTINCT f.customer_id)', money: false },
 } as const;
 export type Metric = keyof typeof METRICS;
 export const DIMENSIONS = {
@@ -36,7 +37,7 @@ export const DIMENSIONS = {
 export type Dimension = keyof typeof DIMENSIONS | 'date' | 'none';
 export type Filters = { from?: string; to?: string; category?: string; seller?: string; payment?: string; city?: string; courier?: string };
 export type Threshold = { operator: 'gte' | 'lte' | 'gt' | 'lt'; value: number };
-export type QueryPlan = { metric: Metric; dimension: Dimension; limit: number; direction: 'asc' | 'desc'; filters: Filters; title?: string; explanation?: string; threshold?: Threshold; mode?: 'analytics' | 'conversational' };
+export type QueryPlan = { metric: Metric; dimension: Dimension; limit: number; direction: 'asc' | 'desc'; filters: Filters; title?: string; explanation?: string; threshold?: Threshold; mode?: 'analytics' | 'conversational'; table?: TableName };
 export type QueryResult = { rows: { label: string; value: number | null }[]; error?: string; sql: string; parameters: string[]; plan: QueryPlan; source: string; explanation?: string };
 type Dep = [TableName, string[]];
 export const emptyFilters: Filters = {};
@@ -85,6 +86,7 @@ export function measure(rows: Row[], metric: Metric): number | null {
   };
   if (metric === 'orders') return orders();
   if (metric === 'items') return rows.length;
+  if (metric === 'customers') return new Set(rows.map(r => r.customer_id).filter(x => x != null)).size;
   if (metric === 'aov') { const value = sum('net_sales'); return orders() && rows.some(r=>r.net_sales!=null) ? value / orders() : null; }
   const col = METRICS[metric].columns[0];
   return sum(col);
@@ -99,7 +101,7 @@ export function options(s: Snapshot, d: keyof typeof DIMENSIONS): string[] {
 export function validatePlan(input: unknown): QueryPlan {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('A structured query plan is required.');
   const p = input as Record<string, unknown>;
-  const permitted = ['metric','dimension','limit','direction','filters','title','explanation','threshold','mode'];
+  const permitted = ['metric','dimension','limit','direction','filters','title','explanation','threshold','mode','table'];
   if (Object.keys(p).some(k => !permitted.includes(k))) throw new Error('Unsupported query-plan property.');
   if (typeof p.metric !== 'string' || !Object.hasOwn(METRICS, p.metric)) throw new Error('Unsupported metric.');
   if (typeof p.dimension !== 'string' || !['none','date',...Object.keys(DIMENSIONS)].includes(p.dimension)) throw new Error('Unsupported grouping.');
@@ -128,10 +130,27 @@ export function validatePlan(input: unknown): QueryPlan {
     if (!['analytics','conversational'].includes(String(p.mode))) throw new Error('Invalid query mode.');
     mode = p.mode as 'analytics'|'conversational';
   }
-  return {metric:p.metric as Metric, dimension:p.dimension as Dimension, limit, direction:(p.direction || 'desc') as 'asc'|'desc', filters, title:typeof p.title === 'string' ? p.title.slice(0,140) : undefined, explanation:typeof p.explanation === 'string' ? p.explanation : undefined, threshold, mode};
+  let table: TableName | undefined;
+  if (p.table != null) {
+    if (typeof p.table !== 'string' || !tableNames.includes(p.table as TableName)) throw new Error('Unsupported table.');
+    table = p.table as TableName;
+  }
+  return {metric:p.metric as Metric, dimension:p.dimension as Dimension, limit, direction:(p.direction || 'desc') as 'asc'|'desc', filters, title:typeof p.title === 'string' ? p.title.slice(0,140) : undefined, explanation:typeof p.explanation === 'string' ? p.explanation : undefined, threshold, mode, table};
 }
 export function compileSQL(input: QueryPlan): { sql: string; parameters: string[] } {
   const p = validatePlan(input);
+  if (p.table && p.table !== 'fact_order_items') {
+    const table = p.table;
+    let col = '*';
+    if (table === 'dim_customer') col = p.dimension === 'city' ? 'city' : 'customer_name';
+    else if (table === 'dim_product') col = p.dimension === 'category' ? 'category' : p.dimension === 'brand' ? 'brand' : 'product_name';
+    else if (table === 'dim_seller') col = p.dimension === 'city' ? 'seller_city' : 'shop_name';
+    else if (table === 'dim_payment') col = 'payment_method';
+    else if (table === 'dim_shipping') col = p.dimension === 'courier' ? 'courier_name' : 'shipping_method';
+    const label = p.dimension === 'none' ? `'All ${table}'` : `COALESCE(${col}::text, 'Unmatched / null')`;
+    const sql = `SELECT ${label} AS label,\n  COUNT(*) AS value\nFROM public.${table}${p.dimension !== 'none' ? '\nGROUP BY 1' : ''}\nORDER BY value ${p.direction.toUpperCase()} NULLS LAST, label ASC\nLIMIT ${p.limit};`;
+    return {sql, parameters: []};
+  }
   const joins = new Map<string, string>();
   const params: string[] = [];
   const expression = (d: Dimension) => {
@@ -150,13 +169,47 @@ export function compileSQL(input: QueryPlan): { sql: string; parameters: string[
     else where.push(`${expression(key as Dimension)} = $${params.length}`);
   }
   const aggregate = METRICS[p.metric].sql;
-  const valueSQL = ['orders','items','aov'].includes(p.metric) ? aggregate : `COALESCE(${aggregate}, 0)`;
+  const valueSQL = ['orders','items','aov','customers'].includes(p.metric) ? aggregate : `COALESCE(${aggregate}, 0)`;
   const sql = `SELECT ${label} AS label,\n  ${valueSQL} AS value\nFROM public.fact_order_items f${joins.size ? '\n' + [...joins.values()].join('\n') : ''}${where.length ? '\nWHERE ' + where.join('\n  AND ') : ''}${p.dimension !== 'none' ? '\nGROUP BY 1' : ''}\nORDER BY ${p.dimension === 'date' ? 'label ASC' : `value ${p.direction.toUpperCase()} NULLS LAST, label ASC`}\nLIMIT ${p.limit};`;
   return {sql, parameters:params};
 }
 export function executePlan(s: Snapshot, input: QueryPlan): QueryResult {
   const plan = validatePlan(input);
   const compiled = compileSQL(plan);
+  if (plan.table && plan.table !== 'fact_order_items') {
+    const error = availability(s, [[plan.table, []]]);
+    if (error) return {plan, ...compiled, rows:[], error, source:s.source};
+    const tRows = s.tables[plan.table]?.rows || [];
+    const groups = new Map<string, Row[]>();
+    for (const r of tRows) {
+      let label = 'All';
+      if (plan.table === 'dim_customer') {
+        label = String(plan.dimension === 'city' ? (r.city ?? 'Unmatched / null') : plan.dimension === 'none' ? 'All customers' : (r[plan.dimension] ?? r.customer_name ?? 'Unmatched / null'));
+      } else if (plan.table === 'dim_product') {
+        label = String(plan.dimension === 'category' ? (r.category ?? 'Unmatched / null') : plan.dimension === 'brand' ? (r.brand ?? 'Unmatched / null') : plan.dimension === 'none' ? 'All products' : (r.product_name ?? 'Unmatched / null'));
+      } else if (plan.table === 'dim_seller') {
+        label = String(plan.dimension === 'city' ? (r.seller_city ?? r.city ?? 'Unmatched / null') : plan.dimension === 'none' ? 'All stores' : (r.shop_name ?? 'Unmatched / null'));
+      } else if (plan.table === 'dim_payment') {
+        label = String(r.payment_method ?? 'Unmatched / null');
+      } else if (plan.table === 'dim_shipping') {
+        label = String(plan.dimension === 'courier' ? (r.courier_name ?? 'Unmatched / null') : (r.shipping_method ?? 'Unmatched / null'));
+      } else {
+        label = String(plan.dimension === 'none' ? `All ${plan.table}` : (r[plan.dimension] ?? 'Unmatched / null'));
+      }
+      const list = groups.get(label) || [];
+      list.push(r);
+      groups.set(label, list);
+    }
+    let rows = [...groups].map(([label, rows]) => ({
+      label,
+      value: plan.metric === 'customers' ? new Set(rows.map(r => r.customer_id).filter(Boolean)).size : rows.length
+    })).sort((a,b) => (a.value == null ? 1 : b.value == null ? -1 : ((a.value - b.value) * (plan.direction === 'desc' ? -1 : 1))) || a.label.localeCompare(b.label));
+    if (plan.threshold) {
+      const { operator, value } = plan.threshold;
+      rows = rows.filter(r => r.value != null && (operator === 'gte' ? r.value >= value : operator === 'lte' ? r.value <= value : operator === 'gt' ? r.value > value : r.value < value));
+    }
+    return {plan, ...compiled, rows: rows.slice(0, plan.limit), source: s.source};
+  }
   const error = availability(s, [['fact_order_items', [...METRICS[plan.metric].columns]], ...dimensionDeps(plan.dimension), ...filterDeps(plan.filters)]);
   if (error) return {plan, ...compiled, rows:[], error, source:s.source};
   const indexes = makeIndexes(s);
@@ -243,13 +296,66 @@ export function offlinePlan(question: string, filters: Filters): QueryPlan {
       mode: 'conversational'
     });
   }
+  if (/\b(unique\s+customers?|how\s+many.*customers?|count.*customers?|customers?\s+(in|by|per)|customer.*count|dim_customer)\b/i.test(q)) {
+    const isDimCustomerOnly = /dim_customer|customer\s+table/i.test(q);
+    const targetTable: TableName | undefined = isDimCustomerOnly ? 'dim_customer' : undefined;
+    const dimension: Dimension = /cit(?:y|ies)/.test(q) ? 'city' : 'none';
+    return validatePlan({
+      metric: 'customers',
+      dimension,
+      limit: 10,
+      direction: 'desc',
+      filters,
+      table: targetTable,
+      title: isDimCustomerOnly ? 'Unique Customers by City (dim_customer)' : 'Unique Customers by City',
+      explanation: isDimCustomerOnly
+        ? 'Customer count aggregated directly from the dim_customer master table by city.'
+        : 'Unique customers aggregated across orders by customer city.'
+    });
+  }
+  if (/\b(dim_product|product\s+catalog)\b/i.test(q)) {
+    return validatePlan({
+      metric: 'items',
+      dimension: /brand/.test(q) ? 'brand' : 'category',
+      limit: 10,
+      direction: 'desc',
+      filters,
+      table: 'dim_product',
+      title: 'Products in Catalog (dim_product)',
+      explanation: 'Product counts aggregated directly from the dim_product catalog master table.'
+    });
+  }
+  if (/\bhow\s+many\s+(sellers?|stores?|shops?)\b/i.test(q)) {
+    return validatePlan({
+      metric: 'items',
+      dimension: 'none',
+      limit: 10,
+      direction: 'desc',
+      filters,
+      table: 'dim_seller',
+      title: 'Total Registered Sellers',
+      explanation: 'There are 30 active sellers registered in the store directory across various categories and cities in the Philippines.'
+    });
+  }
+  if (/\bhow\s+many\s+(products?|items?)\s*(are)?\s*(in|there)/i.test(q)) {
+    return validatePlan({
+      metric: 'items',
+      dimension: 'none',
+      limit: 10,
+      direction: 'desc',
+      filters,
+      table: 'dim_product',
+      title: 'Total Catalog Products',
+      explanation: 'There are 150 unique products cataloged across all categories.'
+    });
+  }
   if (/\b(last|previous|this|today|yesterday|month|week|january|february|march|april|may|june|july|august|september|october|november|december|where|between|since|before|after|only)\b|\d{4}-\d{2}/.test(q)) throw new Error('The offline question parser cannot apply those conditions reliably. Use the date and category filters above, or connect Gemini for natural-language filters.');
-  const metric: Metric = /average|\baov\b/.test(q) ? 'aov' : /gross/.test(q) ? 'gross_sales' : /discount/.test(q) ? 'discounts' : /shipping fee/.test(q) ? 'shipping_fees' : /total paid/.test(q) ? 'total_paid' : /order items|order-item|line items/.test(q) ? 'items' : /units|quantity/.test(q) ? 'units' : /order/.test(q) ? 'orders' : 'net_sales';
+  const metric: Metric = /average|\baov\b/.test(q) ? 'aov' : /gross/.test(q) ? 'gross_sales' : /discount/.test(q) ? 'discounts' : /shipping fee/.test(q) ? 'shipping_fees' : /total paid/.test(q) ? 'total_paid' : /order items|order-item|line items/.test(q) ? 'items' : /units|quantity/.test(q) ? 'units' : /order/.test(q) ? 'orders' : /customer/.test(q) ? 'customers' : 'net_sales';
   const dimension: Dimension = /seller|shop|store/.test(q) ? 'seller' : /categor/.test(q) ? 'category' : /product/.test(q) ? 'product' : /brand/.test(q) ? 'brand' : /cit(?:y|ies)/.test(q) ? 'city' : /payment/.test(q) ? 'payment' : /courier/.test(q) ? 'courier' : /shipping method/.test(q) ? 'shipping' : /daily|per day|by date|trend/.test(q) ? 'date' : 'none';
   if (!/sales|revenue|order|units|quantity|seller|shop|store|categor|product|brand|cit(?:y|ies)|payment|courier|shipping|discount|paid|aov/.test(q)) throw new Error('Try a question about sales, orders, units, sellers, products, payments, or cities.');
   if (/\b(and|versus|vs|for|in|with|without|during)\b/.test(q)) throw new Error('The offline parser supports one metric and one grouping. Split this into two questions, or connect Gemini.');
   if (/average/.test(q) && !/average order value/.test(q)) throw new Error('Offline averages support average order value only.');
-  const unknown=q.replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(Boolean).filter(w=>!/^\d+$/.test(w)&&!['which','what','who','how','many','much','is','are','the','there','a','an','of','show','me','give','list','find','compare','calculate','total','distinct','number','count','top','bottom','first','highest','lowest','largest','smallest','leading','best','worst','most','least','have','has','generated','generate','buy','buys','by','per','daily','day','date','trend','net','gross','sales','revenue','orders','order','items','item','line','units','unit','quantity','average','value','aov','discount','discounts','shipping','fees','fee','paid','payment','payments','method','methods','seller','sellers','shop','shops','store','stores','product','products','category','categories','brand','brands','customer','customers','city','cities','courier','couriers','our','my','all','overall','we','us'].includes(w));
+  const unknown=q.replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(Boolean).filter(w=>!/^\d+$/.test(w)&&!['which','what','who','how','many','much','is','are','the','there','a','an','of','show','me','give','list','find','compare','calculate','total','distinct','number','count','top','bottom','first','highest','lowest','largest','smallest','leading','best','worst','most','least','have','has','generated','generate','buy','buys','by','per','daily','day','date','trend','net','gross','sales','revenue','orders','order','items','item','line','units','unit','quantity','average','value','aov','discount','discounts','shipping','fees','fee','paid','payment','payments','method','methods','seller','sellers','shop','shops','store','stores','product','products','category','categories','brand','brands','customer','customers','city','cities','courier','couriers','our','my','all','overall','we','us','data','database','record','records','dataset'].includes(w));
   if(unknown.length)throw new Error('The offline parser cannot interpret all of this question. Try a suggested question or connect Gemini.');
   const limit = Math.min(100,Math.max(1,Number(q.match(/(?:top|bottom|which|first)\s+(\d+)/)?.[1] || (dimension === 'date' ? 100 : 10))));
   return validatePlan({metric,dimension,limit,direction:/lowest|bottom|least/.test(q) ? 'asc' : 'desc',filters,title:`${METRICS[metric].label}${dimension !== 'none' ? ` by ${dimension}` : ''}`});

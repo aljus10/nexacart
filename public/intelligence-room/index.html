@@ -15,8 +15,15 @@
     <img class="nx-photo" src="assets/workshop.webp" alt="Dark metal-and-glass workshop with amber mechanical holograms, a central projector, and three monitor displays" draggable="false">
     <canvas class="nx-depth" aria-hidden="true"></canvas>
     <canvas class="nx-software" aria-hidden="true"></canvas>
-    <div class="nx-monitor nx-sales" style="width:360px;height:210px"><canvas width="720" height="420" role="img" aria-label="Supporting AI answer graph monitor"></canvas><button type="button" class="nx-screen-hit cursor-interaction" aria-label="Focus supporting AI answer graph"></button></div>
-    <div class="nx-monitor nx-stores" style="width:360px;height:190px"><canvas width="720" height="380" role="img" aria-label="Explore AI answer details and breakdown monitor"></canvas><button type="button" class="nx-screen-hit cursor-interaction" aria-label="Focus explore answer breakdown"></button></div>
+    <div class="nx-monitor nx-sales" style="width:360px;height:210px"><canvas width="1440" height="840" role="img" aria-label="Supporting AI answer graph monitor"></canvas><button type="button" class="nx-screen-hit cursor-interaction" aria-label="Focus supporting AI answer graph"></button></div>
+    <div class="nx-monitor nx-stores" style="width:360px;height:190px">
+      <canvas width="1440" height="760" role="img" aria-label="Explore AI answer details and breakdown monitor"></canvas>
+      <div class="nx-monitor-tabs" role="tablist" aria-label="Explore Monitor Views">
+        <button type="button" class="nx-mon-tab active cursor-interaction" data-view="ledger" role="tab" aria-selected="true" aria-label="Evidence Table View">1. EVIDENCE TABLE</button>
+        <button type="button" class="nx-mon-tab cursor-interaction" data-view="sql" role="tab" aria-selected="false" aria-label="Quantum SQL View">2. QUANTUM SQL</button>
+      </div>
+      <button type="button" class="nx-screen-hit cursor-interaction" aria-label="Focus explore answer breakdown and toggle SQL view"></button>
+    </div>
     <div class="nx-monitor nx-products" style="width:760px;height:364px">
       <canvas width="1520" height="728" role="img" aria-label="Retro Computer Workstation and NexaDrive Flight Display"></canvas>
       <button type="button" class="nx-screen-hit cursor-interaction" aria-label="Use Retro Computer Workstation"></button>
@@ -75,6 +82,7 @@
         <button type="button" class="nx-icon nx-cancel cursor-interaction" aria-label="Close question input"><i data-lucide="x" aria-hidden="true"></i></button>
       </div>
     </form>
+
     <div class="nx-sr nx-status" role="status" aria-live="polite">Opening Nexa's workshop.</div>
   </section>
   

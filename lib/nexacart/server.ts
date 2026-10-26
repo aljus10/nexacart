@@ -53,7 +53,8 @@ const planSchema = {
         filters:{type:'object',properties:Object.fromEntries(['from','to','category','seller','payment','city','courier'].map(k=>[k,{type:'string'}]))},
         title:{type:'string'},
         threshold:{type:'object',properties:{operator:{type:'string',enum:['gte','lte','gt','lt']},value:{type:'number'}},required:['operator','value']},
-        mode:{type:'string',enum:['analytics','conversational']}
+        mode:{type:'string',enum:['analytics','conversational']},
+        table:{type:'string',enum:tableNames}
       },
       required:['metric','dimension','limit','direction','filters']
     }
@@ -69,6 +70,7 @@ export async function geminiPlan(env: RuntimeEnv, question: string, snapshot: Sn
   const isOtherAnomaly = /other\s+anomal|any\s+other\s+anomal|anomalies\s+other/i.test(qTrim);
   const isGreeting = /^(hi|hello|hey|good\s+(?:morning|afternoon|evening)|who\s+are\s+you|what\s+can\s+you\s+do)\b/i.test(qTrim);
   const isUnavailableData = /\b(profit|margin|cogs|cost\s+of\s+goods|inventory|stock|stock\s+level|refund|return|delivered|tracking|gps|real[\s-]time|conversion|retention|churn)\b/i.test(qTrim);
+  const isCustomerQuery = /customer|dim_customer/i.test(qTrim);
 
   const prompt = `You are the NexaCart commerce query planner and retail analyst for a Philippine e-commerce dataset (2024-2026). Return only JSON conforming to the schema.
 Schema: fact_order_items contains commerce transactions and joins to dimensions.
@@ -131,8 +133,18 @@ Core Instructions:
 - Delivery fees -> metric: "shipping_fees", Payment methods -> dimension: "payment", Couriers -> dimension: "courier", Cities -> dimension: "city"
 - Trends, daily, monthly -> dimension: "date"
 - Overall totals -> dimension: "none"
+- Unique customers, buyers, shoppers -> metric: "customers"
 
-10. MISSING OR DROPPED SCHEMA TABLES:
+10. DIMENSION TABLE & DIRECT ENTITY QUERIES:
+- If the user asks about a specific dimension table directly (e.g. "How many unique customers are in each city, using only dim_customer?", "in dim_customer", "count products in dim_product by category", "registered stores directory", "using only dim_customer"):
+  * ALWAYS set supported: true, mode: "analytics".
+  * For dim_customer: Set table: "dim_customer", metric: "customers", dimension: "city" (or "none"), title: "Unique Customers by City (dim_customer)". In reason, explain: "Customer count evaluated directly from the dim_customer master table by customer city."
+  * For dim_product: Set table: "dim_product", metric: "items", dimension: "category" (or "brand" or "product"), title: "Product Catalog Count (dim_product)".
+  * For dim_seller: Set table: "dim_seller", metric: "items", dimension: "city", title: "Stores Directory by City (dim_seller)".
+- If the user asks for purchasing customers from order history (e.g. "unique customers who bought", "how many buying customers by city"):
+  * Set table: "fact_order_items", metric: "customers", dimension: "city".
+
+11. MISSING OR DROPPED SCHEMA TABLES:
 - Check "Schema status". If any table has status !== 'available' (e.g. status is "missing" or "error"):
 - If the question asks about an entity that requires that missing table (e.g. asking about stores/sellers when dim_seller is missing, or products/categories when dim_product is missing, or transactions/sales when fact_order_items is missing), OR if the user asks why a table or metric is unavailable or dropped:
   Set supported: true, mode: "conversational".
@@ -226,6 +238,21 @@ Question: ${JSON.stringify(question)}`;
         explanation: parsed.reason || 'Analysis highlights key Philippine retail anomalies: Christmas peak spikes (Dec 24–25 up to ₱29K), 11.11 & 12.12 mega sale surges, Dec 15–18 13th-month pay bonuses, 15th/30th payday cycles, and January post-holiday spending pullbacks.'
       };
     }
+    if (isCustomerQuery) {
+      const isDim = /dim_customer|customer\s+table/i.test(qTrim);
+      return {
+        metric: 'customers',
+        dimension: 'city',
+        limit: 10,
+        direction: 'desc',
+        filters,
+        table: isDim ? 'dim_customer' : undefined,
+        title: isDim ? 'Unique Customers by City (dim_customer)' : 'Unique Customers by City',
+        explanation: isDim
+          ? 'Customer count evaluated directly from the dim_customer master table by customer city.'
+          : 'Unique purchasing customers aggregated across orders by customer city.'
+      };
+    }
     if (isGreeting || isUnavailableData || (parsed.reason && parsed.reason.length > 5)) {
       return {
         metric: 'net_sales',
@@ -267,6 +294,21 @@ Question: ${JSON.stringify(question)}`;
         filters,
         title: 'Sales Anomalies and Trends Over Time',
         explanation: parsed.reason || 'Analysis highlights key Philippine retail anomalies: Christmas peak spikes (Dec 24–25 up to ₱29K), 11.11 & 12.12 mega sale surges, Dec 15–18 13th-month pay bonuses, 15th/30th payday cycles, and January post-holiday spending pullbacks.'
+      };
+    }
+    if (isCustomerQuery) {
+      const isDim = /dim_customer|customer\s+table/i.test(qTrim);
+      return {
+        metric: 'customers',
+        dimension: 'city',
+        limit: 10,
+        direction: 'desc',
+        filters,
+        table: isDim ? 'dim_customer' : undefined,
+        title: isDim ? 'Unique Customers by City (dim_customer)' : 'Unique Customers by City',
+        explanation: isDim
+          ? 'Customer count evaluated directly from the dim_customer master table by customer city.'
+          : 'Unique purchasing customers aggregated across orders by customer city.'
       };
     }
     if (isGreeting) {
@@ -313,6 +355,25 @@ export async function answerQuestion(env: RuntimeEnv, question: string, s: Snaps
       planner
     };
   }
+  if (plan.table && plan.table !== 'fact_order_items') {
+    const tableError = availability(s, [[plan.table, []]]);
+    if (tableError) {
+      return {
+        ...executePlan(s, plan),
+        plan: { ...plan, mode: 'conversational' },
+        explanation: `Database notice: ${tableError}`,
+        sql: '-- Dimension table unavailable',
+        parameters: [],
+        source: s.source,
+        planner
+      };
+    }
+    return {
+      ...executePlan(s, plan),
+      explanation: plan.explanation,
+      planner
+    };
+  }
   const depsError = availability(s,[['fact_order_items',[...METRICS[plan.metric].columns]],...dimensionDeps(plan.dimension),...filterDeps(plan.filters)]);
   if (depsError) {
     return {
@@ -334,7 +395,15 @@ export async function answerQuestion(env: RuntimeEnv, question: string, s: Snaps
     filters: plan.filters,
     title: plan.title
   };
-  const data = await supabaseRPC(env,'nexacart_query',{query_plan:rpcPlan}) as {rows:{label:string;value:number|null}[]};
+  let data: {rows:{label:string;value:number|null}[]};
+  try {
+    data = await supabaseRPC(env,'nexacart_query',{query_plan:rpcPlan}) as {rows:{label:string;value:number|null}[]};
+  } catch (err) {
+    if (plan.metric === 'customers') {
+      return {...executePlan(s,plan),explanation:plan.explanation,planner:env.GEMINI_API_KEY && !offline ? 'Gemini' : 'Offline parser'};
+    }
+    throw err;
+  }
   if (!data || !Array.isArray(data.rows) || data.rows.length > 100 || data.rows.some(r=>typeof r.label !== 'string' || (r.value != null && !Number.isFinite(Number(r.value))))) throw new Error('The database returned an invalid result.');
   let rows = data.rows.map(r=>({label:r.label,value:r.value == null ? null : Number(r.value)}));
   if (plan.threshold) {

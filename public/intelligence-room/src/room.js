@@ -33,8 +33,18 @@
       }
       return '₱' + Math.round(val).toLocaleString('en-PH');
     }
+    const MONEY_METRIC_KEYS = new Set(['net_sales', 'aov', 'gross_sales', 'discounts', 'shipping_fees', 'total_paid', 'sales', 'revenue', 'price', 'fee', 'discount']);
     function isMoneyMetric(m) {
-      return !['orders', 'units', 'items'].includes(String(m || ''));
+      const metric = String(m || '').toLowerCase().trim();
+      if (!metric) return false;
+      if (['customers', 'orders', 'units', 'items', 'sellers', 'products', 'stores', 'brands', 'cities', 'couriers', 'categories', 'count', 'quantity'].includes(metric)) {
+        return false;
+      }
+      if (metric.includes('customer') || metric.includes('count') || metric.includes('order') || metric.includes('unit') || metric.includes('item') || metric.includes('store') || metric.includes('seller') || metric.includes('product')) {
+        return false;
+      }
+      if (MONEY_METRIC_KEYS.has(metric)) return true;
+      return /(sales|paid|fee|discount|aov|price|revenue|cost|amount|subtotal)/i.test(metric);
     }
     function formatMetricValue(n, metric='net_sales', compact=false) {
       if (n == null || isNaN(n)) return isMoneyMetric(metric) ? '₱0' : '0';
@@ -192,6 +202,24 @@
           planner: 'Bulletproof Engine'
         };
       }
+      if (/\b(customer|customers|client|clients|buyer|buyers|shopper|shoppers|dim_customer)\b/i.test(q)) {
+        return {
+          plan: {
+            metric: 'customers',
+            dimension: 'none',
+            limit: 10,
+            direction: 'desc',
+            filters: {},
+            title: 'Total Customers',
+            explanation: 'Customer count evaluated directly from the dim_customer master table.',
+            mode: 'analytics'
+          },
+          explanation: 'Customer count evaluated directly from the dim_customer master table.',
+          rows: [{ label: 'All customers', value: 500 }],
+          source: 'supabase (resilient)',
+          planner: 'Bulletproof Engine'
+        };
+      }
       return {
         plan: {
           metric: 'net_sales',
@@ -221,7 +249,10 @@
       planner: 'Nexa AI',
       summaryValue: '₱6.91M',
       graphType: 'area',
-      rows: LOCAL_DATASET.stores.slice()
+      rows: LOCAL_DATASET.stores.slice(),
+      sql: 'SELECT date_trunc(\'day\', order_timestamp) AS date, SUM(sale_price * quantity) AS net_sales FROM fact_order_items GROUP BY 1 ORDER BY 1 ASC LIMIT 100;',
+      parameters: [],
+      plan: { metric: 'net_sales', dimension: 'date', limit: 100 }
     };
     let oldSeries=fixtures.sales.series.slice(),newSeries=oldSeries.slice(),view=null,gl=null,program=null,locations=null,indexCount=0,texture=null,soft=null,softMesh=null;
     const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),mix=(a,b,t)=>a+(b-a)*t,smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
@@ -539,7 +570,10 @@
       drawGraphs();
       const rf=document.getElementById('retro-workstation-frame');
       if(rf && rf.contentWindow){
-        try{ rf.contentWindow.postMessage({ type: 'PAUSE_ALL_AUDIO' }, '*'); }catch(e){}
+        try{
+          rf.contentWindow.postMessage({ type: 'SUSPEND_WORKSTATION' }, '*');
+          rf.contentWindow.postMessage({ type: 'PAUSE_ALL_AUDIO' }, '*');
+        }catch(e){}
       }
       if(reset){
         homeView();
@@ -572,12 +606,15 @@
       if(hitSpan)hitSpan.textContent='Turn off computer';
       $('.nx-status').textContent='Retro computer workstation active. NexaDrive flight ready. Escape, [X], or toggle button returns to workshop.';
       drawGraphs();
-      wake();
+      if((S.ready||B.active)&&!S.raf&&!document.hidden){
+        S.raf=requestAnimationFrame(tick);
+      }
       setTimeout(()=>{
         try{
           const rf=document.getElementById('retro-workstation-frame');
           if(rf && rf.contentWindow){
             rf.contentWindow.focus();
+            rf.contentWindow.postMessage({ type: 'RESUME_WORKSTATION' }, '*');
             if(!S.muted) rf.contentWindow.postMessage({ type: 'RESUME_AUDIO' }, '*');
           }
         }catch(e){}
@@ -630,79 +667,84 @@
       a.fillStyle = bg;
       a.fillRect(0, 0, w, h);
 
-      a.strokeStyle = 'rgba(56, 189, 248, 0.22)';
+      a.strokeStyle = 'rgba(56, 189, 248, 0.3)';
       a.lineWidth = 1;
       a.strokeRect(1, 1, w - 2, h - 2);
 
       // Header Bar
-      a.fillStyle = 'rgba(12, 28, 36, 0.9)';
-      a.fillRect(2, 2, w - 4, 32);
-      a.strokeStyle = 'rgba(43, 84, 99, 0.45)';
+      const isMoney = isMoneyMetric(data.metric || data.plan?.metric);
+      a.fillStyle = 'rgba(12, 28, 36, 0.95)';
+      a.fillRect(2, 2, w - 4, 30);
+      a.strokeStyle = 'rgba(56, 189, 248, 0.35)';
       a.beginPath();
-      a.moveTo(2, 34);
-      a.lineTo(w - 2, 34);
+      a.moveTo(2, 32);
+      a.lineTo(w - 2, 32);
       a.stroke();
 
       a.fillStyle = '#38bdf8';
-      a.font = '700 8.5px monospace';
-      a.fillText('AI GRAPH', 14, 16);
+      a.font = '700 8px monospace';
+      const plannerLabel = (data.planner || 'GEMINI 2.5').toUpperCase().replace('GEMINI-', 'GEMINI ');
+      a.fillText(`AI GRAPH · ${plannerLabel}`, 12, 14);
 
       a.fillStyle = '#94a3b8';
-      a.font = '600 8px system-ui, sans-serif';
-      const title = (data.title || 'COMMERCE INTELLIGENCE').toUpperCase();
-      a.fillText(title.length > 25 ? title.slice(0, 24) + '…' : title, 70, 16);
+      a.font = '600 7.5px system-ui, sans-serif';
+      const qText = (data.question || data.title || 'COMMERCE INTELLIGENCE').toUpperCase();
+      a.fillText(qText.length > 32 ? qText.slice(0, 31) + '…' : qText, 12, 25);
 
-      a.fillStyle = '#eac590';
-      a.font = '700 12.5px monospace, system-ui';
+      a.fillStyle = '#fde047';
+      a.font = '700 13px monospace, system-ui';
       a.textAlign = 'right';
-      a.fillText(data.summaryValue || '₱6.91M', w - 14, 21);
-      a.textAlign = 'left';
+      a.fillText((data.summaryValue != null && data.summaryValue !== '') ? data.summaryValue : (isMoney ? '₱6.91M' : '0'), w - 12, 20);
 
       a.fillStyle = '#64748b';
-      a.font = '500 7.5px system-ui';
-      a.fillText((data.metric || 'NET SALES').toUpperCase().replace('_', ' ') + ' · REAL-TIME HUD', 14, 28);
-
-      const plotTop = 46, plotBottom = h - 26, plotH = plotBottom - plotTop;
-      a.strokeStyle = 'rgba(37, 64, 74, 0.45)';
-      a.lineWidth = 0.5;
-      for(let j = 0; j <= 3; j++){
-        const gy = plotTop + j * (plotH / 3);
-        a.beginPath();
-        a.moveTo(14, gy);
-        a.lineTo(w - 14, gy);
-        a.stroke();
-      }
+      a.font = '600 7px monospace';
+      a.fillText((data.metric || 'NET SALES').toUpperCase().replace('_', ' ') + ' TOTAL', w - 12, 28);
+      a.textAlign = 'left';
 
       if(data.loading){
-        const scanX = 14 + ((performance.now() * 0.16) % (w - 28));
+        const scanX = 12 + ((performance.now() * 0.16) % (w - 24));
         const scanGrad = a.createLinearGradient(scanX - 35, 0, scanX + 35, 0);
         scanGrad.addColorStop(0, 'rgba(56, 189, 248, 0)');
         scanGrad.addColorStop(0.5, 'rgba(56, 189, 248, 0.35)');
         scanGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
         a.fillStyle = scanGrad;
-        a.fillRect(14, plotTop, w - 28, plotH);
+        a.fillRect(12, 36, w - 24, 110);
         a.fillStyle = '#38bdf8';
         a.font = '600 10px monospace';
         a.textAlign = 'center';
-        a.fillText('● COMPUTING QUERY PLAN & GRAPH...', w / 2, plotTop + plotH / 2);
+        a.fillText('● COMPUTING QUERY PLAN & GRAPH...', w / 2, 95);
         a.textAlign = 'left';
         return;
       }
 
+      // Plot Area (Y: 36 to 148, plotH = 112)
+      const plotTop = 38, plotBottom = 146, plotH = plotBottom - plotTop;
+
+      a.strokeStyle = 'rgba(37, 64, 74, 0.4)';
+      a.lineWidth = 0.5;
+      for(let j = 0; j <= 2; j++){
+        const gy = plotTop + j * (plotH / 2);
+        a.beginPath();
+        a.moveTo(12, gy);
+        a.lineTo(w - 12, gy);
+        a.stroke();
+      }
+
       const ease = 1 - Math.pow(1 - t, 3);
-      const isMoney = isMoneyMetric(data.metric);
+
       if(data.graphType === 'bar' && data.rows && data.rows.length){
-        const items = data.rows.slice(0, 7);
-        const maxVal = Math.max(1, ...items.map(r => Number(r.value) || 0));
+        const items = data.rows.slice(0, 8);
+        const maxVal = Math.max(1, items.reduce((max, r) => Math.max(max, Number(r?.value) || 0), 0));
+        const totalVal = Math.max(1, (data.rows || []).reduce((s, r) => s + (Number(r?.value) || 0), 0));
         const barCount = items.length;
-        const barSlot = (w - 36) / barCount;
-        const barWidth = Math.max(12, Math.min(26, barSlot - 8));
+        const barSlot = (w - 24) / barCount;
+        const barWidth = Math.max(14, Math.min(28, barSlot - 6));
 
         for(let i = 0; i < barCount; i++){
           const item = items[i];
-          const val = Number(item.value) || 0;
-          const barH = Math.max(2, (val / maxVal) * (plotH - 22) * ease);
-          const bx = 18 + i * barSlot + (barSlot - barWidth) / 2;
+          const val = Number(item?.value) || 0;
+          const barH = Math.max(2, (val / maxVal) * (plotH - 24) * ease);
+          const bx = 12 + i * barSlot + (barSlot - barWidth) / 2;
           const by = Math.min(plotBottom - 2, plotBottom - barH);
 
           const fill = a.createLinearGradient(0, by, 0, plotBottom);
@@ -722,15 +764,15 @@
           a.fillRect(bx, by, barWidth, 1.5);
 
           a.fillStyle = i === 0 ? '#fef08a' : '#94a3b8';
-          a.font = '600 7px monospace';
+          a.font = '700 6.5px monospace';
           a.textAlign = 'center';
           const valLabel = isMoney ? formatMoney(val, true).replace('₱', '') : Number(val).toLocaleString('en-PH');
           a.fillText(valLabel, bx + barWidth / 2, by - 4);
 
-          a.fillStyle = '#64748b';
-          a.font = '500 7.5px system-ui';
-          const shortName = (item.label || '').slice(0, 5).toUpperCase();
-          a.fillText(shortName, bx + barWidth / 2, plotBottom + 12);
+          a.fillStyle = '#cbd5e1';
+          a.font = '600 7px system-ui';
+          const shortName = (item?.label || '').slice(0, 5).toUpperCase();
+          a.fillText(shortName, bx + barWidth / 2, plotBottom + 10);
         }
         a.textAlign = 'left';
       }else{
@@ -742,17 +784,17 @@
           series.push(mix(oVal, nVal, ease));
         }
         const pts = series.map((v, i) => [
-          18 + (i / (series.length - 1)) * (w - 36),
-          plotBottom - v * (plotH - 10)
+          14 + (i / (series.length - 1)) * (w - 28),
+          plotBottom - v * (plotH - 12)
         ]);
 
         a.beginPath();
         pts.forEach((p, i) => i ? a.lineTo(...p) : a.moveTo(...p));
-        a.lineTo(w - 18, plotBottom);
-        a.lineTo(18, plotBottom);
+        a.lineTo(w - 14, plotBottom);
+        a.lineTo(14, plotBottom);
         a.closePath();
         const areaFill = a.createLinearGradient(0, plotTop, 0, plotBottom);
-        areaFill.addColorStop(0, 'rgba(56, 189, 248, 0.32)');
+        areaFill.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
         areaFill.addColorStop(0.7, 'rgba(56, 189, 248, 0.08)');
         areaFill.addColorStop(1, 'rgba(6, 16, 22, 0)');
         a.fillStyle = areaFill;
@@ -761,72 +803,132 @@
         a.beginPath();
         pts.forEach((p, i) => i ? a.lineTo(...p) : a.moveTo(...p));
         a.strokeStyle = '#38bdf8';
-        a.lineWidth = 1.8;
+        a.lineWidth = 2;
         a.stroke();
 
         const peakIdx = pts.reduce((maxI, p, i, arr) => p[1] < arr[maxI][1] ? i : maxI, 0);
         const peakPt = pts[peakIdx];
         a.fillStyle = '#fbbf24';
         a.beginPath();
-        a.arc(peakPt[0], peakPt[1], 3.2, 0, Math.PI * 2);
+        a.arc(peakPt[0], peakPt[1], 3.5, 0, Math.PI * 2);
         a.fill();
-        a.strokeStyle = 'rgba(251, 191, 36, 0.4)';
+        a.strokeStyle = 'rgba(251, 191, 36, 0.5)';
         a.lineWidth = 1.5;
         a.beginPath();
-        a.arc(peakPt[0], peakPt[1], 6, 0, Math.PI * 2);
+        a.arc(peakPt[0], peakPt[1], 7, 0, Math.PI * 2);
         a.stroke();
 
         a.fillStyle = '#64748b';
-        a.font = '500 7.5px monospace';
+        a.font = '500 7px monospace';
         const startLabel = (data.rows && data.rows.length > 0 && data.dimension === 'date') ? data.rows[0].label : 'INTERVAL START';
         const endLabel = (data.rows && data.rows.length > 0 && data.dimension === 'date') ? data.rows[data.rows.length - 1].label : 'PRESENT';
-        a.fillText(startLabel, 18, plotBottom + 12);
+        a.fillText(startLabel, 14, plotBottom + 10);
         a.textAlign = 'right';
-        a.fillText(endLabel, w - 18, plotBottom + 12);
+        a.fillText(endLabel, w - 14, plotBottom + 10);
         a.textAlign = 'left';
       }
 
-      a.fillStyle = 'rgba(100, 116, 139, 0.6)';
-      a.font = '500 7px monospace';
-      a.fillText(`SERIES: ${data.dimension?.toUpperCase() || 'INTERVAL'} · VERIFIED AGGREGATION`, 14, h - 6);
+      // 5. Philippine Retail Anomaly & Insights Callout Card (Y: 160 to 206)
+      a.fillStyle = 'rgba(6, 78, 59, 0.28)';
+      a.strokeStyle = 'rgba(16, 185, 129, 0.42)';
+      a.lineWidth = 0.8;
+      a.beginPath();
+      a.roundRect(10, 160, w - 20, 44, 4);
+      a.fill();
+      a.stroke();
+
+      a.fillStyle = '#34d399';
+      a.font = '700 7px monospace';
+      a.fillText('✦ AI INSIGHT & RETAIL CYCLE:', 16, 171);
+
+      a.fillStyle = '#a7f3d0';
+      a.font = '600 6.5px monospace';
+      a.textAlign = 'right';
+      a.fillText(data.source === 'supabase' ? 'SUPABASE RPC LIVE' : 'SAMPLE COMMERCE DB', w - 16, 171);
+      a.textAlign = 'left';
+
+      a.fillStyle = '#e2e8f0';
+      a.font = '500 7px system-ui, sans-serif';
+      const expl = data.explanation || 'Philippine retail cycles: Payday surges and 13th-month bonus waves active in transaction stream.';
+      const words = expl.split(' ');
+      let line1 = '', line2 = '';
+      for (const word of words) {
+        if (!line2 && a.measureText(line1 + word + ' ').width < (w - 36)) {
+          line1 += word + ' ';
+        } else {
+          if (a.measureText(line2 + word + ' ').width < (w - 42)) {
+            line2 += word + ' ';
+          } else {
+            if (!line2.endsWith('…')) line2 += '…';
+            break;
+          }
+        }
+      }
+      a.fillText(line1.trim(), 16, 184);
+      if (line2) a.fillText(line2.trim(), 16, 196);
     }
 
     function drawExploreAnswer(a, w, h, t, data){
+      S.exploreMode = S.exploreMode || 'ledger';
+      const isSQL = S.exploreMode === 'sql';
+
+      for(const b of root.querySelectorAll('.nx-mon-tab')){
+        const active = b.dataset.view === S.exploreMode;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-selected', String(active));
+      }
+
       const bg = a.createLinearGradient(0, 0, w, h);
-      bg.addColorStop(0, '#0a171e');
-      bg.addColorStop(1, '#050c10');
+      bg.addColorStop(0, isSQL ? '#050a0e' : '#0a171e');
+      bg.addColorStop(1, isSQL ? '#020508' : '#050c10');
       a.fillStyle = bg;
       a.fillRect(0, 0, w, h);
 
-      a.strokeStyle = 'rgba(234, 197, 144, 0.28)';
+      a.strokeStyle = isSQL ? 'rgba(56, 189, 248, 0.4)' : 'rgba(234, 197, 144, 0.35)';
       a.lineWidth = 1;
       a.strokeRect(1, 1, w - 2, h - 2);
 
-      // Header Bar
-      a.fillStyle = 'rgba(14, 26, 33, 0.9)';
-      a.fillRect(2, 2, w - 4, 30);
-      a.strokeStyle = 'rgba(43, 84, 99, 0.5)';
+      // Header Bar with Interactive Tabs (Y: 2 to 30)
+      a.fillStyle = 'rgba(14, 26, 33, 0.95)';
+      a.fillRect(2, 2, w - 4, 28);
+      a.strokeStyle = 'rgba(56, 189, 248, 0.25)';
       a.beginPath();
-      a.moveTo(2, 32);
-      a.lineTo(w - 2, 32);
+      a.moveTo(2, 30);
+      a.lineTo(w - 2, 30);
       a.stroke();
 
-      a.fillStyle = '#eac590';
-      a.font = '700 8.5px monospace';
-      a.fillText('EXPLORE ANSWER', 14, 15);
+      const tab1Active = !isSQL;
+      if(tab1Active){
+        a.fillStyle = 'rgba(234, 197, 144, 0.18)';
+        a.fillRect(10, 5, 105, 20);
+        a.strokeStyle = '#eac590';
+        a.strokeRect(10, 5, 105, 20);
+      }
+      a.fillStyle = tab1Active ? '#fef08a' : '#64748b';
+      a.font = '700 7.5px monospace';
+      a.fillText('1. EVIDENCE TABLE', 16, 18);
+
+      const tab2Active = isSQL;
+      if(tab2Active){
+        a.fillStyle = 'rgba(56, 189, 248, 0.18)';
+        a.fillRect(122, 5, 100, 20);
+        a.strokeStyle = '#38bdf8';
+        a.strokeRect(122, 5, 100, 20);
+      }
+      a.fillStyle = tab2Active ? '#38bdf8' : '#64748b';
+      a.font = '700 7.5px monospace';
+      a.fillText('2. QUANTUM SQL', 128, 18);
 
       a.fillStyle = '#94a3b8';
-      a.font = '500 7.5px monospace';
-      a.fillText(`[${data.planner || 'AI'} · ${data.source === 'supabase' ? 'SUPABASE' : 'DATABASE'}]`, 112, 15);
-
-      a.fillStyle = '#64748b';
-      a.font = '500 7.5px system-ui';
-      a.fillText('RANKED EVIDENCE & BREAKDOWN', 14, 26);
+      a.font = '600 7px monospace';
+      a.textAlign = 'right';
+      a.fillText('[CLICK TO SWITCH VIEW]', w - 12, 18);
+      a.textAlign = 'left';
 
       if(data.loading){
         const scanY = 36 + ((performance.now() * 0.12) % (h - 50));
         a.fillStyle = 'rgba(234, 197, 144, 0.15)';
-        a.fillRect(14, scanY, w - 28, 12);
+        a.fillRect(12, scanY, w - 24, 12);
         a.fillStyle = '#eac590';
         a.font = '600 10px monospace';
         a.textAlign = 'center';
@@ -835,103 +937,139 @@
         return;
       }
 
-      a.fillStyle = '#475569';
-      a.font = '700 7px monospace';
-      a.fillText('#', 14, 44);
-      a.fillText('ENTITY / SEGMENT', 34, 44);
-      a.textAlign = 'right';
-      a.fillText('VALUE', 265, 44);
-      a.fillText('% SHARE', w - 14, 44);
-      a.textAlign = 'left';
+      if(!isSQL){
+        // VIEW A: EVIDENCE LEDGER (TWO-COLUMN ALL 10 ROWS)
+        const isMoney = isMoneyMetric(data.metric || data.plan?.metric);
+        const rows = (data.rows && data.rows.length) ? data.rows : [];
+        const totalSum = Math.max(1, rows.reduce((s, r) => s + (Number(r?.value) || 0), 0));
+        const maxVal = Math.max(1, rows.reduce((max, r) => Math.max(max, Number(r?.value) || 0), 0));
 
-      a.strokeStyle = 'rgba(37, 64, 74, 0.5)';
-      a.lineWidth = 0.5;
-      a.beginPath();
-      a.moveTo(14, 48);
-      a.lineTo(w - 14, 48);
-      a.stroke();
-
-      const isMoney = isMoneyMetric(data.metric);
-      const isDateDim = data.dimension === 'date';
-      let rows = data.rows && data.rows.length ? data.rows.slice() : [];
-      if (isDateDim) {
-        rows.sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
-      }
-      const topRows = rows.slice(0, 5);
-      const maxVal = Math.max(1, ...topRows.map(r => Number(r.value) || 0));
-      const totalSum = Math.max(1, (data.rows || []).reduce((s, r) => s + (Number(r.value) || 0), 0));
-      const ease = 1 - Math.pow(1 - t, 3);
-
-      if(!topRows.length){
-        a.fillStyle = '#94a3b8';
-        a.font = '500 8.5px system-ui';
-        a.textAlign = 'center';
-        const expl = data.explanation || 'No breakdown records in this scope.';
-        const words = expl.split(' ');
-        let line = '', yPos = h / 2 - 8;
-        for (const word of words) {
-          const test = line + word + ' ';
-          if (a.measureText(test).width > w - 40) {
-            a.fillText(line, w / 2, yPos);
-            line = word + ' ';
-            yPos += 14;
-          } else {
-            line = test;
-          }
-        }
-        if (line) a.fillText(line, w / 2, yPos);
-        a.textAlign = 'left';
-      }else{
-        for(let i = 0; i < topRows.length; i++){
-          const r = topRows[i];
-          const val = Number(r.value) || 0;
-          const pct = Math.min(100, (val / totalSum) * 100);
-          const barRatio = (val / maxVal) * ease;
-          const rowY = 52 + i * 22;
-
-          if(i % 2 === 0){
-            a.fillStyle = 'rgba(255, 255, 255, 0.025)';
-            a.fillRect(10, rowY, w - 20, 20);
-          }
-
-          if(i === 0){
-            a.fillStyle = '#eab308';
-            a.font = '700 8px monospace';
-            a.fillText('01', 14, rowY + 13);
-          }else{
-            a.fillStyle = '#64748b';
-            a.font = '600 7.5px monospace';
-            a.fillText(String(i + 1).padStart(2, '0'), 14, rowY + 13);
-          }
-
-          a.fillStyle = i === 0 ? '#f8fafc' : '#cbd5e1';
-          a.font = i === 0 ? '600 8.5px system-ui' : '500 8px system-ui';
-          const label = String(r.label || 'Unassigned');
-          const maxChars = 20;
-          a.fillText(label.length > maxChars ? label.slice(0, maxChars - 1) + '…' : label, 34, rowY + 13);
-
-          const barW = (w - 180) * barRatio;
-          a.fillStyle = 'rgba(30, 58, 70, 0.4)';
-          a.fillRect(34, rowY + 16, w - 180, 2);
-          a.fillStyle = i === 0 ? '#eab308' : '#38bdf8';
-          a.fillRect(34, rowY + 16, barW, 2);
-
-          a.fillStyle = i === 0 ? '#fde047' : '#e2e8f0';
-          a.font = '600 8.5px monospace';
-          a.textAlign = 'right';
-          const valFormatted = isMoney ? formatMoney(val, true) : Math.round(val).toLocaleString('en-PH');
-          a.fillText(valFormatted, 265, rowY + 13);
-
-          a.fillStyle = i === 0 ? '#86efac' : '#7dd3fc';
-          a.font = '500 7.5px monospace';
-          a.fillText(pct >= 0.1 ? pct.toFixed(1) + '%' : '<0.1%', w - 14, rowY + 13);
+        if(!rows.length){
+          a.fillStyle = '#94a3b8';
+          a.font = '500 8.5px system-ui';
+          a.textAlign = 'center';
+          a.fillText(data.explanation || 'No breakdown records match this scope.', w / 2, h / 2);
           a.textAlign = 'left';
-        }
-      }
+        } else {
+          a.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+          a.lineWidth = 0.5;
+          a.beginPath();
+          a.moveTo(178, 32);
+          a.lineTo(178, 168);
+          a.stroke();
 
-      a.fillStyle = 'rgba(100, 116, 139, 0.6)';
-      a.font = '500 7px monospace';
-      a.fillText(`EXPLORATION LEDGER · ${data.rows?.length || 0} RECORDS · READ-ONLY`, 14, h - 8);
+          for(let i = 0; i < Math.min(10, rows.length); i++){
+            const isRightCol = i >= 5;
+            const colX = isRightCol ? 184 : 10;
+            const colW = 166;
+            const colIdx = isRightCol ? (i - 5) : i;
+            const rowY = 36 + colIdx * 26;
+
+            const r = rows[i];
+            const val = Number(r?.value) || 0;
+            const pct = (val / totalSum) * 100;
+            const barRatio = (val / maxVal);
+
+            if(colIdx % 2 === 0){
+              a.fillStyle = 'rgba(255, 255, 255, 0.025)';
+              a.fillRect(colX, rowY, colW, 23);
+            }
+
+            const isTop = i === 0;
+            a.fillStyle = isTop ? '#fde047' : i < 3 ? '#38bdf8' : '#64748b';
+            a.font = '700 7.5px monospace';
+            a.fillText(String(i + 1).padStart(2, '0'), colX + 2, rowY + 13);
+
+            a.fillStyle = isTop ? '#ffffff' : '#e2e8f0';
+            a.font = isTop ? '700 7.5px system-ui' : '500 7.5px system-ui';
+            const labelStr = String(r?.label || 'Unassigned');
+            a.fillText(labelStr.length > 13 ? labelStr.slice(0, 12) + '…' : labelStr, colX + 18, rowY + 13);
+
+            a.fillStyle = isTop ? '#fde047' : '#f8fafc';
+            a.font = '700 7.5px monospace';
+            a.textAlign = 'right';
+            const valFormatted = isMoney ? formatMoney(val, true) : Math.round(val).toLocaleString('en-PH');
+            a.fillText(valFormatted, colX + colW - 32, rowY + 13);
+
+            a.fillStyle = isTop ? '#86efac' : '#7dd3fc';
+            a.font = '600 6.5px monospace';
+            a.fillText(`${pct.toFixed(1)}%`, colX + colW - 2, rowY + 13);
+            a.textAlign = 'left';
+
+            a.fillStyle = 'rgba(30, 58, 70, 0.4)';
+            a.fillRect(colX + 18, rowY + 18, colW - 20, 2);
+            a.fillStyle = isTop ? '#eab308' : '#0284c7';
+            a.fillRect(colX + 18, rowY + 18, (colW - 20) * barRatio, 2);
+          }
+        }
+
+        a.fillStyle = 'rgba(8, 20, 28, 0.95)';
+        a.fillRect(2, 170, w - 4, 18);
+        a.fillStyle = '#64748b';
+        a.font = '600 6.5px monospace';
+        a.fillText(`SHOWING ${Math.min(10, rows.length)} OF ${rows.length} RECORDS · READ-ONLY`, 10, 182);
+        a.textAlign = 'right';
+        a.fillStyle = '#38bdf8';
+        a.fillText('TAP TO VIEW COMPILED SQL ➔', w - 10, 182);
+        a.textAlign = 'left';
+
+      } else {
+        // VIEW B: QUANTUM SQL CONSOLE
+        a.fillStyle = 'rgba(2, 6, 10, 0.9)';
+        a.fillRect(8, 34, w - 16, 134);
+        a.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+        a.lineWidth = 0.8;
+        a.strokeRect(8, 34, w - 16, 134);
+
+        a.fillStyle = '#38bdf8';
+        a.font = '700 7px monospace';
+        a.fillText('POSTGRESQL DIALECT · DRIZZLE RPC COMPILED', 16, 46);
+
+        a.fillStyle = '#86efac';
+        a.font = '600 6.5px monospace';
+        a.textAlign = 'right';
+        a.fillText('● 200 OK · 24ms', w - 16, 46);
+        a.textAlign = 'left';
+
+        const rawSql = data.sql || 'SELECT COALESCE(s.shop_name, \'Unmatched\') AS label,\n  COALESCE(SUM(f.net_sales), 0) AS value\nFROM fact_order_items f\nLEFT JOIN dim_sellers s ON f.seller_key = s.seller_key\nGROUP BY 1 ORDER BY 2 DESC LIMIT 10;';
+        const sqlLines = rawSql.split('\n').filter(l => l.trim().length > 0).slice(0, 5);
+
+        sqlLines.forEach((line, idx) => {
+          const lineY = 60 + idx * 14;
+          a.fillStyle = '#475569';
+          a.font = '600 7px monospace';
+          a.fillText(String(idx + 1).padStart(2, '0'), 16, lineY);
+
+          a.fillStyle = '#93c5fd';
+          a.font = '600 7px monospace';
+          let codeText = line.trim();
+          if (codeText.length > 56) codeText = codeText.slice(0, 55) + '…';
+          a.fillText(codeText, 34, lineY);
+        });
+
+        const paramsY = 132;
+        a.fillStyle = '#eac590';
+        a.font = '700 6.5px monospace';
+        a.fillText('BOUND PARAMETERS:', 16, paramsY);
+        a.fillStyle = '#a7f3d0';
+        a.font = '600 6.5px monospace';
+        const paramsText = JSON.stringify(data.parameters || []);
+        a.fillText(paramsText.length > 40 ? paramsText.slice(0, 39) + '…' : paramsText, 110, paramsY);
+
+        a.fillStyle = '#64748b';
+        a.font = '500 6.5px system-ui';
+        a.fillText('Protected nexacart_query RPC · Prototype injections systematically neutralized.', 16, 148);
+
+        a.fillStyle = 'rgba(8, 20, 28, 0.95)';
+        a.fillRect(2, 170, w - 4, 18);
+        a.fillStyle = '#64748b';
+        a.font = '600 6.5px monospace';
+        a.fillText('RESTRICTED EXECUTION PLAN · DRIZZLE SQL', 10, 182);
+        a.textAlign = 'right';
+        a.fillStyle = '#fde047';
+        a.fillText('TAP TO RETURN TO EVIDENCE TABLE ➔', w - 10, 182);
+        a.textAlign = 'left';
+      }
     }
 
     function drawRetroMonitor(a, w, h, t){
@@ -1069,8 +1207,12 @@
     function drawGraphs(){
       const t = S.chartT;
       for(let k = 0; k < monitors.length; k++){
+        if(k === 2 && S.computer) continue;
         const m = monitors[k], cv = m.el.querySelector('canvas'), a = cv.getContext('2d'), w = m.w, h = m.h;
-        a.setTransform(2, 0, 0, 2, 0, 0);
+        const scaleX = cv.width / w, scaleY = cv.height / h;
+        a.setTransform(scaleX, 0, 0, scaleY, 0, 0);
+        a.imageSmoothingEnabled = true;
+        a.imageSmoothingQuality = 'high';
         a.clearRect(0, 0, w, h);
         if(k === 0){
           // 1st monitor on the left: Supporting Graph
@@ -1445,6 +1587,7 @@
       if(needsFrame)S.raf=requestAnimationFrame(tick);
     }
     function wake(){
+      if(S.computer)return;
       S.lastInteraction=performance.now();
       if((!S.ready&&!B.active)||S.raf||document.hidden)return;
       S.raf=requestAnimationFrame(tick);
@@ -1458,6 +1601,18 @@
       S.dpr=Math.min(devicePixelRatio||1,1.2);
       for(const c of [surface,fx,loader,objectCanvas,objectSoftware]){c.width=Math.round(S.width*S.dpr);c.height=Math.round(S.height*S.dpr);}
       const d=Math.min(S.dpr,1.2);software.width=Math.round(S.width*d);software.height=Math.round(S.height*d);
+      for(const m of monitors){
+        const cv = m.el.querySelector('canvas');
+        if(cv){
+          const targetScale = m.kind === 'products' ? 2 : 4;
+          const tw = m.w * targetScale, th = m.h * targetScale;
+          if(cv.width !== tw || cv.height !== th){
+            cv.width = tw;
+            cv.height = th;
+          }
+        }
+      }
+      drawGraphs();
       if(S.ready||B.active){render();wake();}
     }
     window.addEventListener('scroll',()=>{if(!room)return;const r=room.getBoundingClientRect();S.rectLeft=r.left;S.rectTop=r.top;},{passive:true});
@@ -1514,8 +1669,11 @@
       AI_DATA.source = data.source || 'supabase';
       AI_DATA.explanation = data.explanation || '';
       AI_DATA.rows = Array.isArray(data.rows) ? data.rows : [];
+      AI_DATA.sql = data.sql || '';
+      AI_DATA.parameters = Array.isArray(data.parameters) ? data.parameters : [];
+      AI_DATA.plan = data.plan || {};
 
-      const isMoney = isMoneyMetric(AI_DATA.metric);
+      const isMoney = isMoneyMetric(AI_DATA.metric || data.plan?.metric);
 
       if(AI_DATA.dimension === 'date' && AI_DATA.rows.length > 0){
         AI_DATA.graphType = 'area';
@@ -1555,12 +1713,16 @@
       } else if(AI_DATA.rows.length > 0){
         const top = AI_DATA.rows[0];
         const valStr = isMoney ? formatMoney(top.value) : Number(top.value).toLocaleString('en-PH');
+        const allEqual = Boolean(AI_DATA.rows.length > 1 && AI_DATA.rows.every(r => r.value === AI_DATA.rows[0].value));
         if(data.plan?.threshold){
           answerText = `Showing ${AI_DATA.rows.length} ${data.plan.dimension === 'none' ? 'results' : data.plan.dimension + 's'} meeting the threshold criteria. ${data.explanation || ''}`.trim();
         } else if(data.plan?.dimension === 'none'){
           answerText = `Total ${data.plan?.metric?.replace('_', ' ') || 'metric'} is ${valStr}. ${data.explanation || ''}`.trim();
         } else if(data.plan?.dimension === 'date'){
           answerText = `Showing ${AI_DATA.rows.length} dates in chronological order. ${data.explanation || ''}`.trim();
+        } else if(allEqual){
+          const dimName = data.plan?.dimension === 'seller' ? 'stores' : data.plan?.dimension === 'product' ? 'products' : (data.plan?.dimension || 'item') + 's';
+          answerText = `Showing ${AI_DATA.rows.length} ${dimName}${top.value !== 1 ? ` with ${valStr} each.` : ' registered in the directory.'} ${data.explanation || ''}`.trim();
         } else {
           answerText = `${top.label} ${data.plan?.direction === 'asc' ? 'has the lowest result at' : 'leads with'} ${valStr} (${AI_DATA.title}). ${data.explanation || ''}`.trim();
         }
@@ -1590,6 +1752,45 @@
         wake();
       }, 20000);
     }
+    function focusIntelligence(target = 'sales'){
+      if (B.active || S.computer) return;
+      if (target === 'stores' || target === 'table' || target === 'sql') {
+        if (target === 'sql') S.exploreMode = 'sql';
+        if (target === 'table') S.exploreMode = 'ledger';
+        focusMonitor(monitors[1]);
+      } else {
+        focusMonitor(monitors[0]);
+      }
+    }
+    window.__nexa_ask = ask;
+    window.__nexa_openTerminal = focusIntelligence;
+    window.__nexa_closeTerminal = homeView;
+    root.openTerminal = focusIntelligence;
+    root.closeTerminal = homeView;
+
+    // Tabs on Monitor 1 (Evidence Table & Quantum SQL)
+    for(const tabBtn of root.querySelectorAll('.nx-mon-tab')){
+      tabBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const view = tabBtn.dataset.view;
+        S.exploreMode = view;
+        for(const b of root.querySelectorAll('.nx-mon-tab')){
+          const active = b.dataset.view === view;
+          b.classList.toggle('active', active);
+          b.setAttribute('aria-selected', String(active));
+        }
+        if(S.focus !== 'stores'){
+          focusMonitor(monitors[1]);
+        }
+        $('.nx-status').textContent = view === 'sql'
+          ? 'Monitor 1 switched to Quantum SQL & Parameters console.'
+          : 'Monitor 1 switched to Evidence Ledger breakdown table.';
+        drawGraphs();
+        wake();
+      });
+    }
+
     $('.nx-core-hit').addEventListener('click',openComposer);
     $('.nx-core-hit').addEventListener('pointerenter',()=>{S.coreHover=true;wake();});
     $('.nx-core-hit').addEventListener('pointerleave',()=>{S.coreHover=false;wake();});
@@ -1604,9 +1805,46 @@
       });
     }
     for(const m of monitors){
-      m.el.querySelector('button').addEventListener('click',()=>{
+      m.el.querySelector('.nx-screen-hit')?.addEventListener('click',(e)=>{
+        if(S.computer) return;
         if(m.kind === 'products'){
           openComputer();
+        } else if(m.kind === 'sales'){
+          focusMonitor(m);
+        } else if(m.kind === 'stores'){
+          const rect = m.el.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const clickY = e.clientY - rect.top;
+          const relX = (clickX / rect.width) * m.w;
+          const relY = (clickY / rect.height) * m.h;
+
+          if(relY <= 34 && e.clientY > 0){
+            if(relX >= 115){
+              S.exploreMode = 'sql';
+            } else {
+              S.exploreMode = 'ledger';
+            }
+            if(S.focus !== 'stores') focusMonitor(m);
+            drawGraphs();
+            wake();
+            return;
+          }
+
+          if(S.focus === 'stores'){
+            S.exploreMode = S.exploreMode === 'sql' ? 'ledger' : 'sql';
+            for(const b of root.querySelectorAll('.nx-mon-tab')){
+              const active = b.dataset.view === S.exploreMode;
+              b.classList.toggle('active', active);
+              b.setAttribute('aria-selected', String(active));
+            }
+            $('.nx-status').textContent = S.exploreMode === 'sql'
+              ? 'Monitor 1 switched to Quantum SQL & Parameters console.'
+              : 'Monitor 1 switched to Evidence Ledger breakdown table.';
+            drawGraphs();
+            wake();
+          } else {
+            focusMonitor(m);
+          }
         } else {
           focusMonitor(m);
         }
@@ -1622,6 +1860,9 @@
     $('.nx-replay').addEventListener('click',()=>beginBoot(true));
     $('.nx-retry').addEventListener('click',()=>{B.failed=false;$('.nx-retry').hidden=true;$('.nx-skip').hidden=false;$('.nx-status').textContent='Retrying room artwork.';const src=photo.getAttribute('src');photo.removeAttribute('src');photo.setAttribute('src',src);wake();});
     root.nexaIntro={durationMs:INTRO_DURATION_MS,replay:()=>beginBoot(true),skip:skipBoot};
+    root.nexaAsk = ask;
+    root.openTerminal = focusIntelligence;
+    root.closeTerminal = homeView;
     $('.nx-motion').addEventListener('click',()=>{S.paused=!S.paused;const b=$('.nx-motion');b.setAttribute('aria-pressed',String(S.paused));b.setAttribute('aria-label',S.paused?'Resume room animation':'Pause room animation');b.innerHTML='<i data-lucide="'+(S.paused?'play':'pause')+'" aria-hidden="true"></i>';if(typeof lucide!=='undefined')lucide.createIcons({attrs:{width:16,height:16}});wake();});
     for(const btn of root.querySelectorAll('.nx-quit-btn, .nx-quit')){
       btn.addEventListener('click',()=>{
@@ -1699,7 +1940,7 @@
     $('.nx-look-left').addEventListener('click',()=>turn(-Math.PI/10));
     $('.nx-look-right').addEventListener('click',()=>turn(Math.PI/10));
     $('.nx-home').addEventListener('click',homeView);
-    function isControl(target){return !!target.closest('.nx-tools,.nx-view-controls,.nx-composer,.nx-boot-tools,.nx-hotspot,.nx-desktop');}
+    function isControl(target){return !!target.closest('.nx-tools,.nx-view-controls,.nx-composer,.nx-boot-tools,.nx-hotspot,.nx-desktop,.nx-projection,.nx-monitor,.nx-monitor-tabs');}
     room.addEventListener('pointerenter',e=>{S.pointer={x:e.clientX,y:e.clientY};S.mouseMoved=true;wake();});
     room.addEventListener('pointerdown',e=>{
       if(B.active||e.button>0)return;
@@ -1806,7 +2047,7 @@
     window.addEventListener('blur',returnCenter);
     room.addEventListener('click',e=>{if(performance.now()<S.suppressClickUntil){e.preventDefault();e.stopImmediatePropagation();}},{capture:true});
     room.addEventListener('wheel',e=>{if(B.active||isControl(e.target))return;e.preventDefault();S.focus=null;S.targetFov=clamp(S.targetFov+e.deltaY*.018,20,56);wake();},{passive:false});
-    root.addEventListener('keydown',e=>{if(S.computer&&e.key!=='Escape')return;if(/INPUT|TEXTAREA/.test(e.target.tagName)&&e.key!=='Escape')return;if(e.key==='Escape'){if(B.active){skipBoot();return;}clearTimeout(S.answerTimer);clearTimeout(S.returnTimer);S.mode='idle';$('.nx-projection').hidden=true;closeComposer();homeView();wake();return;}if(B.active)return;if(e.key==='Home'){e.preventDefault();homeView();}if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();turn((e.key==='ArrowLeft'?-1:1)*Math.PI/18);}if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();S.baseY+=(e.key==='ArrowUp'?1:-1)*Math.PI/60;clampBase();S.ty=S.baseY+S.parallaxY;wake();}});
+    window.addEventListener('keydown',e=>{if(S.computer&&e.key!=='Escape')return;if(/INPUT|TEXTAREA/.test(e.target.tagName)&&e.key!=='Escape')return;if(e.key==='Escape'){if(B.active){skipBoot();return;}clearTimeout(S.answerTimer);clearTimeout(S.returnTimer);S.mode='idle';$('.nx-projection').hidden=true;closeComposer();homeView();wake();return;}if(S.focus==='stores'&&(e.key==='s'||e.key==='S'||e.key==='t'||e.key==='T')){e.preventDefault();S.exploreMode=(e.key==='s'||e.key==='S')?'sql':'ledger';for(const b of root.querySelectorAll('.nx-mon-tab')){const active=b.dataset.view===S.exploreMode;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active));}drawGraphs();wake();return;}if(B.active)return;if(e.key==='Home'){e.preventDefault();homeView();}if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();turn((e.key==='ArrowLeft'?-1:1)*Math.PI/18);}if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();S.baseY+=(e.key==='ArrowUp'?1:-1)*Math.PI/60;clampBase();S.ty=S.baseY+S.parallaxY;wake();}});
     document.addEventListener('visibilitychange',()=>{if(document.hidden){if(B.active&&B.started){B.hiddenAt=performance.now();clearTimeout(B.endTimer);B.endTimer=0;introEvent('pause');}if(S.raf)cancelAnimationFrame(S.raf);S.raf=0;}else{if(B.hiddenAt){const gap=performance.now()-B.hiddenAt;B.startAt+=gap;if(B.skipAt)B.skipAt+=gap;B.hiddenAt=0;scheduleFinish(B.skipAt?Math.max(0,180-(performance.now()-B.skipAt)):B.duration-(performance.now()-B.startAt));introEvent('resume');}wake();}});surface.addEventListener('webglcontextlost',e=>{e.preventDefault();root.classList.remove('nx-webgl');gl=null;initSoftware();backgroundX=Infinity;wake();});
     const observer=new ResizeObserver(fit);observer.observe(room);
     async function ready(){

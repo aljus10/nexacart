@@ -129,7 +129,7 @@
       title="NexaDrive // Orbital Flight Racer"
       width="1000px"
       height="580px"
-      src="./nexadrive/index.html"
+      data-src="./nexadrive/index.html"
     ></app-window>
 
     <!-- Context Menus -->
@@ -168,7 +168,7 @@
     </div>
 
     <script>
-      // Single-click support and auto-launch
+      // Single-click support and on-demand launcher
       window.addEventListener('DOMContentLoaded', () => {
         const focusGame = () => {
           const driveIframe = document.querySelector('#nexadrive-window iframe');
@@ -188,24 +188,64 @@
           }
         };
 
-        // Single click launcher for icon
+        const bindWindowClose = (win) => {
+          if (!win) return;
+          win.addEventListener('pointerdown', focusGame);
+          win.addEventListener('click', focusGame);
+          const closeBtn = win.querySelector('[data-close], [data-window-close], .close-button, button[aria-label="Close"]');
+          if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+              const driveIframe = win.querySelector('iframe');
+              if (driveIframe && driveIframe.contentWindow) {
+                try {
+                  driveIframe.contentWindow.postMessage({ type: 'SUSPEND_GAME' }, '*');
+                  driveIframe.contentWindow.postMessage({ type: 'PAUSE_AUDIO' }, '*');
+                } catch (_) {}
+              }
+            });
+          }
+        };
+
+        // On-demand launcher: NexaDrive loads ONLY when user clicks the desktop icon
+        const launchNexaDrive = () => {
+          let win = document.getElementById('nexadrive-window');
+          if (!win) {
+            if (launcher && typeof launcher.openWindow === 'function') {
+              launcher.openWindow();
+            }
+            win = document.getElementById('nexadrive-window');
+          }
+          if (!win) return;
+
+          bindWindowClose(win);
+
+          const contentArea = win.querySelector('[data-window-content]');
+          let iframe = contentArea ? contentArea.querySelector('iframe') : null;
+          if (!iframe && contentArea) {
+            win.setAttribute('src', win.getAttribute('data-src') || './nexadrive/index.html');
+            if (typeof win.loadIframe === 'function') {
+              win.loadIframe();
+            }
+          } else if (iframe && iframe.contentWindow) {
+            try { iframe.contentWindow.postMessage({ type: 'RESUME_GAME' }, '*'); } catch (err) {}
+          }
+
+          if (typeof win.open === 'function') {
+            win.open();
+            sizeWindow(win);
+            setTimeout(focusGame, 120);
+          } else if (launcher && typeof launcher.openWindow === 'function') {
+            launcher.openWindow();
+            setTimeout(() => {
+              sizeWindow(win);
+              setTimeout(focusGame, 120);
+            }, 60);
+          }
+        };
+
         const launcher = document.getElementById('nexadrive-launcher');
         if (launcher) {
-          launcher.addEventListener('click', (e) => {
-            const win = document.getElementById('nexadrive-window');
-            if (win && typeof win.open === 'function') {
-              win.open();
-              sizeWindow(win);
-              setTimeout(focusGame, 100);
-            } else if (typeof launcher.openWindow === 'function') {
-              launcher.openWindow();
-              setTimeout(() => {
-                const newWin = document.getElementById('nexadrive-window');
-                sizeWindow(newWin);
-                setTimeout(focusGame, 100);
-              }, 60);
-            }
-          });
+          launcher.addEventListener('click', launchNexaDrive);
         }
 
         const notesLauncher = document.getElementById('notes-launcher');
@@ -217,35 +257,32 @@
           });
         }
 
-        // Auto-open NexaDrive after 200ms initial desktop mount
-        setTimeout(() => {
-          const driveWin = document.getElementById('nexadrive-window');
-          if (driveWin && typeof driveWin.open === 'function') {
-            driveWin.open();
-            sizeWindow(driveWin);
-            setTimeout(focusGame, 300);
-          }
-        }, 200);
-
-        const driveWinEl = document.getElementById('nexadrive-window');
-        if (driveWinEl) {
-          driveWinEl.addEventListener('pointerdown', focusGame);
-          driveWinEl.addEventListener('click', focusGame);
+        const initialDriveWin = document.getElementById('nexadrive-window');
+        if (initialDriveWin) {
+          bindWindowClose(initialDriveWin);
         }
 
-        // Listen for parent messages (e.g., audio muting when stepping away)
+        window.addEventListener('windowClosed', (ev) => {
+          if (ev.detail && ev.detail.windowId === 'nexadrive-window') {
+            // Window closed event
+          }
+        });
+
+        // Listen for parent messages (e.g., pausing when stepping away from workstation)
         window.addEventListener('message', (ev) => {
           if (!ev.data) return;
           const driveIframe = document.querySelector('#nexadrive-window iframe');
-          if (ev.data.type === 'PAUSE_ALL_AUDIO' || ev.data.type === 'SUSPEND_AUDIO') {
+          if (ev.data.type === 'PAUSE_ALL_AUDIO' || ev.data.type === 'SUSPEND_AUDIO' || ev.data.type === 'SUSPEND_WORKSTATION') {
             if (driveIframe && driveIframe.contentWindow) {
               try {
+                driveIframe.contentWindow.postMessage({ type: 'SUSPEND_GAME' }, '*');
                 driveIframe.contentWindow.postMessage({ type: 'PAUSE_AUDIO' }, '*');
               } catch (err) {}
             }
-          } else if (ev.data.type === 'RESUME_AUDIO') {
+          } else if (ev.data.type === 'RESUME_AUDIO' || ev.data.type === 'RESUME_WORKSTATION') {
             if (driveIframe && driveIframe.contentWindow) {
               try {
+                driveIframe.contentWindow.postMessage({ type: 'RESUME_GAME' }, '*');
                 driveIframe.contentWindow.postMessage({ type: 'RESUME_AUDIO' }, '*');
               } catch (err) {}
             }

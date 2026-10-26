@@ -54,7 +54,7 @@ declare
   used text[] := '{}'; key text; val text; spec jsonb; a text; expr text;
 begin
   if jsonb_typeof(query_plan) <> 'object' or jsonb_typeof(filters) <> 'object' then raise exception 'Invalid query plan'; end if;
-  if exists(select 1 from jsonb_object_keys(query_plan) k where k not in ('metric','dimension','limit','direction','filters','title')) then raise exception 'Unsupported property'; end if;
+  if exists(select 1 from jsonb_object_keys(query_plan) k where k not in ('metric','dimension','limit','direction','filters','title','table')) then raise exception 'Unsupported property'; end if;
   if lim < 1 or lim > 100 or direction not in ('asc','desc') then raise exception 'Invalid result bounds'; end if;
   aggregate_sql := case metric
     when 'net_sales' then 'coalesce(sum(f.net_sales),0)'
@@ -66,6 +66,7 @@ begin
     when 'discounts' then 'coalesce(sum(f.discount_amount),0)'
     when 'shipping_fees' then 'coalesce(sum(f.shipping_fee),0)'
     when 'total_paid' then 'coalesce(sum(f.total_paid),0)'
+    when 'customers' then 'count(distinct f.customer_id)'
     else null end;
   if aggregate_sql is null or dim is null or (dim not in ('none','date') and not (dims ? dim)) then raise exception 'Unsupported measure or grouping'; end if;
   if dim = 'date' then label_sql := 'f.order_date::text'; group_sql := ' group by 1';

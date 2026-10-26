@@ -69,12 +69,41 @@
     #nexa-night-hq .nx-composer input::placeholder { color:#a4bfc0; opacity:1; }
     #nexa-night-hq .nx-composer .nx-icon { border-radius:6px; flex-shrink:0; }
     #nexa-night-hq .nx-submit { background:#bfdbd3; color:#173235; border:0; }
-    #nexa-night-hq .nx-projection { position:absolute; top:0; left:0; z-index:7; width:440px; transform-origin:50% 100%; pointer-events:none; color:#d8f3ef; text-shadow:0 0 10px #59cfddaa,0 2px 5px #001116; will-change:transform; }
-    #nexa-night-hq .nx-answer { position:relative; padding:23px 27px; font-size:16px; line-height:1.65; font-weight:400; margin:0; background:linear-gradient(100deg,#112e371b,#163a4280 45%,#112e371b); border-block:1px solid #a6e0e65c; backdrop-filter:blur(3px); clip-path:polygon(0 7px,7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%); animation:nx-materialize 650ms cubic-bezier(.16,1,.3,1) both; }
-    #nexa-night-hq .nx-answer::after { content:''; position:absolute; inset:0; pointer-events:none; background:repeating-linear-gradient(0deg,#a4e5ed00 0 3px,#a4e5ed08 3px 4px); }
-    #nexa-night-hq .nx-projection::before,#nexa-night-hq .nx-projection::after { content:''; position:absolute; top:-5px; bottom:-5px; width:9px; border-block:1px solid #b8edf0c2; }
+    #nexa-night-hq .nx-projection { position:absolute; top:0; left:0; z-index:7; width:460px; transform-origin:50% 100%; pointer-events:none; color:#d8f3ef; will-change:transform; }
+    #nexa-night-hq .nx-answer { position:relative; padding:18px 22px 16px; background:#0b1820b3; border:1px solid #75cfd84d; backdrop-filter:blur(6px); border-radius:6px; box-shadow:0 0 20px #2dbcc924; animation:nx-materialize 650ms cubic-bezier(.16,1,.3,1) both; font-size:14px; line-height:1.6; margin:0; }
+    #nexa-night-hq .nx-answer::after { content:''; position:absolute; inset:0; pointer-events:none; border-radius:6px; background:repeating-linear-gradient(0deg,#a4e5ed00 0 3px,#a4e5ed06 3px 4px); }
+    #nexa-night-hq .nx-projection::before,#nexa-night-hq .nx-projection::after { content:''; position:absolute; top:-5px; bottom:-5px; width:9px; border-block:1px solid #b8edf0c2; pointer-events:none; }
     #nexa-night-hq .nx-projection::before { left:-5px; border-left:1px solid #b8edf0b3; }
     #nexa-night-hq .nx-projection::after { right:-5px; border-right:1px solid #b8edf0b3; }
+    #nexa-night-hq .nx-monitor-tabs {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 32px;
+      z-index: 10;
+      pointer-events: none;
+    }
+    #nexa-night-hq .nx-mon-tab {
+      position: absolute;
+      top: 4px;
+      height: 24px;
+      background: transparent;
+      border: 0;
+      color: transparent;
+      cursor: pointer;
+      pointer-events: auto;
+      padding: 0;
+      touch-action: manipulation;
+    }
+    #nexa-night-hq .nx-mon-tab[data-view="ledger"] {
+      left: 8px;
+      width: 108px;
+    }
+    #nexa-night-hq .nx-mon-tab[data-view="sql"] {
+      left: 120px;
+      width: 105px;
+    }
     #nexa-night-hq .nx-sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
     @keyframes nx-materialize { from { opacity:0; filter:blur(6px); translate:0 17px; } to { opacity:1; filter:blur(0); translate:0 0; } }
     @media(max-width:600px) { #nexa-night-hq .nx-room { min-height:470px; } #nexa-night-hq .nx-projection { width:calc(100% - 42px); max-width:420px; } #nexa-night-hq .nx-answer { padding:17px 20px; font-size:14px; } #nexa-night-hq .nx-composer { bottom:20px; } #nexa-night-hq .nx-composer input { font-size:16px; padding:8px 5px; } #nexa-night-hq .nx-tools { right:12px; bottom:12px; } }
@@ -241,11 +270,22 @@
         height: calc(100% - 90px) !important;
         border-radius: 6px;
       }
+      #nexa-night-hq .nx-desktop {
+        width: 100% !important;
+        height: 100% !important;
+        transform: none !important;
+        border-radius: 6px;
+      }
     }
 
     #nexa-night-hq .nx-armour-sprite { position:absolute; left:0; top:0; z-index:3; transform-origin:0 0; pointer-events:none; width:768px; height:1152px; }
 
-    #nexa-night-hq .nx-monitor,
+    #nexa-night-hq .nx-monitor {
+      will-change: transform;
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+    }
+
     #nexa-night-hq .nx-blueprint,
     #nexa-night-hq .nx-hq-sign,
     #nexa-night-hq .nx-armour-sprite,
