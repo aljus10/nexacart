@@ -30,24 +30,33 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
 
 # typescript
 next-env.d.ts
-
-# Maintained Vite plugin and worker sources.
-!/build/
-/build/*
-!/build/connector-preview-plugin.mjs
-!/build/connector-preview-worker.mjs
-!/build/sites-vite-plugin.LICENSE
-!/build/sites-vite-plugin.ts
-!/build/sites-worker.ts
+*.tsbuildinfo
 
 /dist/
 /.wrangler/
+
+# AI, agent instructions, and vendor hosting metadata
+.openai/
+.plans/
+AGENTS.md
+CLAUDE.md
+
+# Local machine scripts & editor settings
+dev.bat
+dev.ps1
+.vscode/
+
+# Local raw 3D generation scratch & zips (do not push heavy 75MB+ assets)
+polangui-hq/
+public/polangui-hq/
+
 # Checkout-local execution profile and tool state; never publish them.
 /.sites-runtime/
 /.agents/
@@ -56,6 +65,3 @@ next-env.d.ts
 /.work/
 /scratch/
 /future-improvements/
-
-!.env.example
-*.tsbuildinfo

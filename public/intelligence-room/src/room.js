@@ -1257,18 +1257,18 @@
       ackIndex:0,
       compIndex:0,
       acknowledgeLines:[
-        {file:'assets/audio/jarvis/acknowledge_4.mp3',text:'As you wish.'},
-        {file:'assets/audio/jarvis/acknowledge_5.mp3',text:'Will do, sir.'},
-        {file:'assets/audio/jarvis/acknowledge_2.mp3',text:'At your service, sir.'},
-        {file:'assets/audio/jarvis/acknowledge_3.mp3',text:'For you, sir, always.'}
+        {file:'/audio/jarvis/acknowledge_4.mp3',text:'As you wish.'},
+        {file:'/audio/jarvis/acknowledge_5.mp3',text:'Will do, sir.'},
+        {file:'/audio/jarvis/acknowledge_2.mp3',text:'At your service, sir.'},
+        {file:'/audio/jarvis/acknowledge_3.mp3',text:'For you, sir, always.'}
       ],
       completeLines:[
-        {file:'assets/audio/jarvis/complete_1.mp3',text:'All wrapped up here, sir.'},
-        {file:'assets/audio/jarvis/complete_2.mp3',text:'As always, sir, a great pleasure watching you work.'},
-        {file:'assets/audio/jarvis/complete_6.mp3',text:'Complete. Diagnostic projection ready.'}
+        {file:'/audio/jarvis/complete_1.mp3',text:'All wrapped up here, sir.'},
+        {file:'/audio/jarvis/complete_2.mp3',text:'As always, sir, a great pleasure watching you work.'},
+        {file:'/audio/jarvis/complete_6.mp3',text:'Complete. Diagnostic projection ready.'}
       ],
       errorLines:[
-        {file:'assets/audio/jarvis/error_2.mp3',text:'That did not work.'}
+        {file:'/audio/jarvis/error_2.mp3',text:'That did not work.'}
       ],
       stopVoice:function(){
         if(this.currentVoice){
