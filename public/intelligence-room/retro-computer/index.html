@@ -185,8 +185,47 @@
             innerWin.style.height = 'calc(100% - 46px)';
             innerWin.style.left = '12px';
             innerWin.style.top = '36px';
+            innerWin.style.display = 'flex';
+            innerWin.classList.remove('minimized');
           }
         };
+
+        const ensureAppWindowIframe = (win) => {
+          if (!win) return;
+          const dataSrc = win.getAttribute('data-src') || win.getAttribute('src');
+          if (!dataSrc) return;
+          const contentArea = win.querySelector('[data-window-content]');
+          let iframe = contentArea ? contentArea.querySelector('iframe') : null;
+          if (!iframe && contentArea) {
+            win.setAttribute('src', dataSrc);
+            if (typeof win.loadIframe === 'function') {
+              win.loadIframe();
+            } else {
+              contentArea.style.backgroundColor = '#060b10';
+              const ifr = document.createElement('iframe');
+              ifr.src = dataSrc;
+              ifr.className = 'w-full h-full border-0';
+              ifr.style.backgroundColor = '#060b10';
+              ifr.setAttribute('loading', 'eager');
+              ifr.setAttribute('allow', 'autoplay; fullscreen; gamepad');
+              ifr.allow = 'autoplay; fullscreen; gamepad';
+              contentArea.appendChild(ifr);
+            }
+          }
+        };
+
+        // Patch AppWindow prototype so any open() call (from double click, menu, or code) loads the iframe
+        const AppWindowEl = customElements.get('app-window');
+        if (AppWindowEl && AppWindowEl.prototype) {
+          const origOpen = AppWindowEl.prototype.open;
+          AppWindowEl.prototype.open = function() {
+            ensureAppWindowIframe(this);
+            const res = origOpen ? origOpen.apply(this, arguments) : null;
+            sizeWindow(this);
+            setTimeout(focusGame, 120);
+            return res;
+          };
+        }
 
         const bindWindowClose = (win) => {
           if (!win) return;
@@ -217,44 +256,48 @@
           }
           if (!win) return;
 
-          bindWindowClose(win);
+          ensureAppWindowIframe(win);
 
           const contentArea = win.querySelector('[data-window-content]');
-          let iframe = contentArea ? contentArea.querySelector('iframe') : null;
-          if (!iframe && contentArea) {
-            win.setAttribute('src', win.getAttribute('data-src') || './nexadrive/index.html');
-            if (typeof win.loadIframe === 'function') {
-              win.loadIframe();
-            }
-          } else if (iframe && iframe.contentWindow) {
+          const iframe = contentArea ? contentArea.querySelector('iframe') : null;
+          if (iframe && iframe.contentWindow) {
             try { iframe.contentWindow.postMessage({ type: 'RESUME_GAME' }, '*'); } catch (err) {}
           }
 
           if (typeof win.open === 'function') {
             win.open();
-            sizeWindow(win);
-            setTimeout(focusGame, 120);
-          } else if (launcher && typeof launcher.openWindow === 'function') {
-            launcher.openWindow();
-            setTimeout(() => {
-              sizeWindow(win);
-              setTimeout(focusGame, 120);
-            }, 60);
+          } else {
+            const innerWin = win.querySelector('.window');
+            if (innerWin) {
+              innerWin.classList.remove('minimized');
+              innerWin.style.display = 'flex';
+            }
           }
+
+          sizeWindow(win);
+          bindWindowClose(win);
+          setTimeout(focusGame, 120);
         };
 
         const launcher = document.getElementById('nexadrive-launcher');
         if (launcher) {
-          launcher.addEventListener('click', launchNexaDrive);
+          // Capture phase catches clicks on inner button before stopPropagation()
+          launcher.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            launchNexaDrive();
+          }, true);
         }
 
         const notesLauncher = document.getElementById('notes-launcher');
         if (notesLauncher) {
-          notesLauncher.addEventListener('click', () => {
+          notesLauncher.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             if (typeof notesLauncher.openFile === 'function') {
               notesLauncher.openFile();
             }
-          });
+          }, true);
         }
 
         const initialDriveWin = document.getElementById('nexadrive-window');
