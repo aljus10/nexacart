@@ -78,7 +78,9 @@ export async function geminiPlan(env: RuntimeEnv, question: string, snapshot: Sn
   const qTrim = question.trim();
   const isAnomaly = /anomal|outlier|spike|dip|unusual|graph/i.test(qTrim);
   const isOtherAnomaly = /other\s+anomal|any\s+other\s+anomal|anomalies\s+other/i.test(qTrim);
-  const isGreeting = /^(hi|hello|hey|good\s+(?:morning|afternoon|evening)|who\s+are\s+you|what\s+can\s+you\s+do)\b/i.test(qTrim);
+  const isGreeting = /^(hi|hello|hey|good\s+(?:morning|afternoon|evening)|sup|yo)\b/i.test(qTrim) || /\b(who\s+are\s+you|what\s+can\s+you\s+do|how\s+are\s+you|who\s+(?:made|created)\s+you|are\s+you\s+(?:an?\s+)?ai|tell\s+me\s+about\s+yourself|help|guide|thank\s+you|thanks|good\s+job|awesome|cool)\b/i.test(qTrim);
+  const isJoke = /\b(joke|jokes|make me laugh|funny|humor|pun|puns|laugh)\b/i.test(qTrim);
+  const isRandomQuestion = /\b(random\s*question|suggest\s*(?:a\s*)?question|what\s*(?:can|should)\s*i\s*ask|prompt\s*me|give\s*me\s*a\s*question|any\s*question)\b/i.test(qTrim);
   const isUnavailableData = /\b(profit|margin|cogs|cost\s+of\s+goods|inventory|stock|stock\s+level|refund|return|delivered|tracking|gps|real[\s-]time|conversion|retention|churn)\b/i.test(qTrim);
   const isCustomerQuery = /customer|dim_customer/i.test(qTrim);
 
@@ -89,18 +91,30 @@ Available groupings: none,date,seller,category,product,brand,city,payment,courie
 
 Core Instructions:
 1. GREETINGS & IDENTITY:
-- If the user says "hi", "hello", "hey", "who are you", or greets:
+- If the user says "hi", "hello", "hey", greets, or asks who you are, how you are, what you can do:
   Set supported: true, mode: "conversational".
   Set plan: { metric: "net_sales", dimension: "none", limit: 10, direction: "desc", filters: {}, title: "NexaCart AI Assistant", mode: "conversational" }.
-  In reason: Greet warmly: "Hi! I'm NexaCart AI, your commerce analytics assistant. I'm connected to your retail dataset in Supabase to answer questions about sales, orders, best-selling products, store rankings, payment methods, delivery performance, and retail trends."
+  In reason: Greet warmly: "Hi! I'm NexaCart AI, your commerce analytics assistant connected to live Supabase data. I can answer questions about sales, orders, best-selling products, store rankings, payment methods, delivery performance, and retail trends. How can I help you today?"
 
-2. OUT-OF-SCOPE & NON-COMMERCE TOPICS:
-- If the question is completely unrelated to retail/commerce data (e.g. trivia, sports, weather, jokes, general chat):
+2. JOKES, HUMOR & CASUAL BANTER:
+- If the user asks for a joke, humor, pun, or laughs:
   Set supported: true, mode: "conversational".
-  Set plan: { metric: "net_sales", dimension: "none", limit: 10, direction: "desc", filters: {}, title: "NexaCart Assistant", mode: "conversational" }.
-  In reason: Politely redirect: "Sorry, I can only answer questions related to your e-commerce data connected in Supabase. You can ask me about store rankings, sales trends, average order value, payment methods, or delivery performance."
+  Set plan: { metric: "net_sales", dimension: "none", limit: 10, direction: "desc", filters: {}, title: "Commerce Humor & Wit", mode: "conversational" }.
+  In reason: Tell a clever, lighthearted retail, e-commerce, or SQL/tech joke, then invite them to analyze data! (e.g. "Why did the database administrator leave his date? Because she insisted on full outer joins when he was strictly looking for a single primary key! 😄 What data would you like to explore next in NexaCart?")
 
-3. UNAVAILABLE DATA (Profit, Stock, Live GPS, Churn):
+3. RANDOM QUESTIONS & SUGGESTIONS:
+- If the user asks to "make a random question", "suggest a question", or "what should I ask":
+  Set supported: true, mode: "conversational".
+  Set plan: { metric: "net_sales", dimension: "none", limit: 10, direction: "desc", filters: {}, title: "Suggested Analytical Questions", mode: "conversational" }.
+  In reason: Suggest 2-3 engaging, concrete questions from the dataset (e.g. "Which 5 stores have the highest net sales?", "Compare orders by payment method like Maya, GCash, and COD", or "Scenario 2: Maria Flores Maya orders in Feb 2025").
+
+4. OUT-OF-SCOPE & NON-COMMERCE TOPICS:
+- If the question is trivia, weather, sports, or completely unrelated to commerce:
+  Set supported: true, mode: "conversational".
+  Set plan: { metric: "net_sales", dimension: "none", limit: 10, direction: "desc", filters: {}, title: "NexaCart Scope Guidance", mode: "conversational" }.
+  In reason: Politely redirect with helpful guidance: "I'm specialized in retail commerce analytics for NexaCart in Supabase. You can ask me about store rankings, sales trends, average order value, payment methods, delivery performance, or midterm scenarios!"
+
+5. UNAVAILABLE DATA (Profit, Stock, Live GPS, Churn):
 - If asking about metrics outside our schema:
   Set supported: true, mode: "conversational".
   Set plan: { metric: "net_sales", dimension: "none", limit: 10, direction: "desc", filters: {}, title: "Data Scope Guidance", mode: "conversational" }.
@@ -110,7 +124,7 @@ Core Instructions:
   - For GPS/live tracking: "Real-time delivery GPS tracking is not captured in the transactional database. You can explore illustrative delivery routes on the 3D Map tab."
   - For churn/retention: "Customer sign-up dates and churn cohorts are not available, but you can analyze purchase volume across customer cities."
 
-4. ANOMALIES & OUTLIERS:
+6. ANOMALIES & OUTLIERS:
 - If asking about "other anomalies" or "anomalies besides sales":
   Set supported: true, mode: "conversational", dimension: "date", metric: "net_sales", limit: 100, direction: "desc", title: "Retail Anomalies Analysis".
   In reason: "Outside the seasonal sales calendar surges (Christmas peaks on Dec 24–25, 11.11 & 12.12 campaigns, Dec 15–18 13th-month pay bonuses, and 15th/30th payday bumps), operational distributions across couriers, payment methods, and categories are stable with no structural anomalies."
@@ -285,19 +299,16 @@ Question: ${JSON.stringify(question)}`;
           : 'Unique purchasing customers aggregated across orders by customer city.'
       };
     }
-    if (isGreeting || isUnavailableData || (parsed.reason && parsed.reason.length > 5)) {
-      return {
-        metric: 'net_sales',
-        dimension: 'none',
-        limit: 10,
-        direction: 'desc',
-        filters,
-        title: isGreeting ? 'NexaCart AI Assistant' : 'Data Scope Guidance',
-        explanation: parsed.reason || "Hi! I'm NexaCart AI. I can answer questions about your sales, orders, products, sellers, payments, and couriers connected in Supabase.",
-        mode: 'conversational'
-      };
-    }
-    throw new Error(parsed.reason?.slice(0,300) || 'This question is outside the supported commerce query plans.');
+    return {
+      metric: 'net_sales',
+      dimension: 'none',
+      limit: 10,
+      direction: 'desc',
+      filters,
+      title: isGreeting ? 'NexaCart AI Assistant' : isJoke ? 'Commerce Humor & Wit' : isRandomQuestion ? 'Suggested Analytical Questions' : isUnavailableData ? 'Data Scope Guidance' : 'NexaCart Scope Guidance',
+      explanation: parsed.reason || (isJoke ? 'Why did the SQL developer walk out of the e-commerce store? Too many uncommitted transactions and they couldn’t find their primary key! 😄 What data would you like to explore next in NexaCart?' : isRandomQuestion ? 'Here are a few great questions you can explore:\n• "Which 5 stores generated the highest net sales in 2025?"\n• "Compare orders across payment methods like Maya, GCash, and COD"\n• "Scenario 2: Maria Flores orders paid via Maya in February 2025"' : "Hi! I'm NexaCart AI. I can answer questions about your sales, orders, products, sellers, payments, and couriers connected in Supabase."),
+      mode: 'conversational'
+    };
   }
 
   let plan: QueryPlan;
@@ -343,15 +354,15 @@ Question: ${JSON.stringify(question)}`;
           : 'Unique purchasing customers aggregated across orders by customer city.'
       };
     }
-    if (isGreeting) {
+    if (isGreeting || isJoke || isRandomQuestion || isUnavailableData || (parsed.reason && parsed.reason.length > 5)) {
       return {
         metric: 'net_sales',
         dimension: 'none',
         limit: 10,
         direction: 'desc',
         filters,
-        title: 'NexaCart AI Assistant',
-        explanation: "Hi! I'm NexaCart AI, your commerce analytics assistant. I can answer questions about your sales, orders, products, sellers, payments, couriers, and delivery metrics connected in Supabase.",
+        title: isGreeting ? 'NexaCart AI Assistant' : isJoke ? 'Commerce Humor & Wit' : isRandomQuestion ? 'Suggested Analytical Questions' : isUnavailableData ? 'Data Scope Guidance' : 'NexaCart Scope Guidance',
+        explanation: parsed.reason || (isJoke ? 'Why did the SQL developer walk out of the e-commerce store? Too many uncommitted transactions and they couldn’t find their primary key! 😄 What data would you like to explore next in NexaCart?' : isRandomQuestion ? 'Here are a few great questions you can explore:\n• "Which 5 stores generated the highest net sales in 2025?"\n• "Compare orders across payment methods like Maya, GCash, and COD"\n• "Scenario 2: Maria Flores orders paid via Maya in February 2025"' : "Hi! I'm NexaCart AI. I can answer questions about your sales, orders, products, sellers, payments, and couriers connected in Supabase."),
         mode: 'conversational'
       };
     }
@@ -369,11 +380,45 @@ export async function answerQuestion(env: RuntimeEnv, question: string, s: Snaps
       plan = await geminiPlan(env,question,s,filters);
       planner = 'Gemini';
     } catch {
-      plan = offlinePlan(question,filters);
+      try {
+        plan = offlinePlan(question,filters);
+      } catch (err) {
+        if (!/\b(delete|drop|truncate|alter|grant|insert|update)\b/i.test(question) && !/\b(forecast|predict|profit|margin|cogs)\b/i.test(question)) {
+          plan = {
+            metric: 'net_sales',
+            dimension: 'none',
+            limit: 10,
+            direction: 'desc',
+            filters,
+            title: 'NexaCart Scope Guidance',
+            explanation: "I'm specialized in retail commerce analytics for NexaCart in Supabase. You can ask me about store rankings, sales trends, average order value, payment methods, delivery performance, or midterm scenarios!",
+            mode: 'conversational'
+          };
+        } else {
+          throw err;
+        }
+      }
       planner = 'Offline parser';
     }
   } else {
-    plan = offlinePlan(question,filters);
+    try {
+      plan = offlinePlan(question,filters);
+    } catch (err) {
+      if (!/\b(delete|drop|truncate|alter|grant|insert|update)\b/i.test(question) && !/\b(forecast|predict|profit|margin|cogs)\b/i.test(question)) {
+        plan = {
+          metric: 'net_sales',
+          dimension: 'none',
+          limit: 10,
+          direction: 'desc',
+          filters,
+          title: 'NexaCart Scope Guidance',
+          explanation: "I'm specialized in retail commerce analytics for NexaCart in Supabase. You can ask me about store rankings, sales trends, average order value, payment methods, delivery performance, or midterm scenarios!",
+          mode: 'conversational'
+        };
+      } else {
+        throw err;
+      }
+    }
     planner = 'Offline parser';
   }
   const qLower = question.toLowerCase();

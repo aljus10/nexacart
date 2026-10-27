@@ -673,7 +673,31 @@ export function offlinePlan(question: string, filters: Filters): QueryPlan {
       mode: 'conversational'
     });
   }
-  if (/^(hi|hello|hey|good\s+(morning|afternoon|evening)|who\s+are\s+you|what\s+can\s+you\s+do)\b/i.test(q)) {
+  if (/\b(joke|jokes|make me laugh|funny|humor|pun|puns|laugh)\b/i.test(q)) {
+    return validatePlan({
+      metric: 'net_sales',
+      dimension: 'none',
+      limit: 10,
+      direction: 'desc',
+      filters,
+      title: 'Commerce Humor & Wit',
+      explanation: 'Why did the SQL developer walk out of the e-commerce store? Too many uncommitted transactions and they couldn’t find their primary key! 😄 What data would you like to explore next?',
+      mode: 'conversational'
+    });
+  }
+  if (/\b(random\s*question|suggest\s*(?:a\s*)?question|what\s*(?:can|should)\s*i\s*ask|prompt\s*me|give\s*me\s*a\s*question|any\s*question)\b/i.test(q)) {
+    return validatePlan({
+      metric: 'net_sales',
+      dimension: 'none',
+      limit: 10,
+      direction: 'desc',
+      filters,
+      title: 'Suggested Analytical Questions',
+      explanation: 'Here are a few great questions you can explore:\n• "Which 5 stores generated the highest net sales in 2025?"\n• "Compare orders across payment methods like Maya, GCash, and COD"\n• "Show me the sales spike anomalies around Christmas and paydays"\n• "Scenario 2: Maria Flores orders paid via Maya in February 2025"',
+      mode: 'conversational'
+    });
+  }
+  if (/^(hi|hello|hey|good\s+(morning|afternoon|evening)|sup|yo)\b/i.test(q) || /\b(who\s+are\s+you|what\s+can\s+you\s+do|how\s+are\s+you|who\s+(?:made|created)\s+you|are\s+you\s+(?:an?\s+)?ai|tell\s+me\s+about\s+yourself|help|guide|thank\s+you|thanks|good\s+job|awesome|cool)\b/i.test(q)) {
     return validatePlan({
       metric: 'net_sales',
       dimension: 'none',
@@ -681,7 +705,7 @@ export function offlinePlan(question: string, filters: Filters): QueryPlan {
       direction: 'desc',
       filters,
       title: 'NexaCart AI Assistant',
-      explanation: "Hi! I'm NexaCart AI, your commerce analytics assistant. I can answer questions about your sales, orders, products, sellers, payments, couriers, and delivery metrics connected in Supabase.",
+      explanation: "Hi! I'm NexaCart AI, your commerce analytics assistant connected to live Supabase data. I can answer questions about your sales, orders, products, sellers, payments, couriers, and retail anomalies. Ask away!",
       mode: 'conversational'
     });
   }

@@ -247,7 +247,7 @@
           planner: 'Bulletproof Engine'
         };
       }
-      if (/^(hi|hello|hey|who\s+are\s+you|what\s+can\s+you\s+do|help|guide)\b/i.test(q)) {
+      if (/\b(joke|jokes|make me laugh|funny|humor|pun|puns|laugh)\b/i.test(q)) {
         return {
           plan: {
             metric: 'net_sales',
@@ -255,14 +255,50 @@
             limit: 10,
             direction: 'desc',
             filters: {},
-            title: 'NexaCart AI Assistant',
-            explanation: "Hi! I'm NexaCart AI, your commerce analytics intelligence assistant inside Polangui HQ. Ask me about sales over time, top 10 stores, category breakdowns, or retail anomalies.",
+            title: 'J.A.R.V.I.S. Humor Matrix',
+            explanation: 'Why did the database administrator leave his date? Because she insisted on full outer joins when he was strictly looking for a single primary key! 😄 What commerce data can I pull up for you today, boss?',
             mode: 'conversational'
           },
-          explanation: "Hi! I'm NexaCart AI, your commerce analytics intelligence assistant inside Polangui HQ. Ask me about sales over time, top 10 stores, category breakdowns, or retail anomalies.",
+          explanation: 'Why did the database administrator leave his date? Because she insisted on full outer joins when he was strictly looking for a single primary key! 😄 What commerce data can I pull up for you today, boss?',
           rows: [],
-          source: 'supabase (resilient)',
-          planner: 'Bulletproof Engine'
+          source: 'jarvis (conversational)',
+          planner: 'Polangui HQ Jarvis'
+        };
+      }
+      if (/\b(random\s*question|suggest\s*(?:a\s*)?question|what\s*(?:can|should)\s*i\s*ask|prompt\s*me|give\s*me\s*a\s*question|any\s*question)\b/i.test(q)) {
+        return {
+          plan: {
+            metric: 'net_sales',
+            dimension: 'none',
+            limit: 10,
+            direction: 'desc',
+            filters: {},
+            title: 'Suggested Analytical Inquiries',
+            explanation: 'Here are a few analytical queries to test our neural network:\n• "Which 5 stores generated the highest net sales in 2025?"\n• "Compare orders across payment methods like Maya, GCash, and COD"\n• "Scenario 2: Maria Flores Maya orders in February 2025"\nWhich one shall I analyze for you?',
+            mode: 'conversational'
+          },
+          explanation: 'Here are a few analytical queries to test our neural network:\n• "Which 5 stores generated the highest net sales in 2025?"\n• "Compare orders across payment methods like Maya, GCash, and COD"\n• "Scenario 2: Maria Flores Maya orders in February 2025"\nWhich one shall I analyze for you?',
+          rows: [],
+          source: 'jarvis (conversational)',
+          planner: 'Polangui HQ Jarvis'
+        };
+      }
+      if (/^(hi|hello|hey|good\s+(morning|afternoon|evening)|sup|yo)\b/i.test(q) || /\b(who\s+are\s+you|what\s+can\s+you\s+do|how\s+are\s+you|who\s+(?:made|created)\s+you|are\s+you\s+(?:an?\s+)?ai|tell\s+me\s+about\s+yourself|help|guide|thank\s+you|thanks|good\s+job|awesome|cool|jarvis)\b/i.test(q)) {
+        return {
+          plan: {
+            metric: 'net_sales',
+            dimension: 'none',
+            limit: 10,
+            direction: 'desc',
+            filters: {},
+            title: 'Polangui HQ J.A.R.V.I.S.',
+            explanation: "Greetings! I am J.A.R.V.I.S., your tactical AI assistant inside Polangui HQ. I monitor real-time commerce feeds, project relational SQL data, and track revenue across the Philippines. How can I serve you today?",
+            mode: 'conversational'
+          },
+          explanation: "Greetings! I am J.A.R.V.I.S., your tactical AI assistant inside Polangui HQ. I monitor real-time commerce feeds, project relational SQL data, and track revenue across the Philippines. How can I serve you today?",
+          rows: [],
+          source: 'jarvis (conversational)',
+          planner: 'Polangui HQ Jarvis'
         };
       }
       if (/\b(customer|customers|client|clients|buyer|buyers|shopper|shoppers|dim_customer)\b/i.test(q)) {
@@ -283,6 +319,24 @@
           planner: 'Bulletproof Engine'
         };
       }
+      if (/\b(total|totals|summary|overview|all|overall|performance|revenue|business|sales|money)\b/i.test(q)) {
+        return {
+          plan: {
+            metric: 'net_sales',
+            dimension: 'none',
+            limit: 10,
+            direction: 'desc',
+            filters: {},
+            title: 'Total Commerce Performance',
+            explanation: 'Overall commerce platform summary across all verified transactions.',
+            mode: 'analytics'
+          },
+          explanation: 'Total net sales is ₱6,914,845 across 2,418 orders with an average order value of ₱2,859.74.',
+          rows: [{ label: 'All commerce', value: LOCAL_DATASET.totals.net_sales }],
+          source: 'supabase (resilient)',
+          planner: 'Bulletproof Engine'
+        };
+      }
       return {
         plan: {
           metric: 'net_sales',
@@ -290,14 +344,14 @@
           limit: 10,
           direction: 'desc',
           filters: {},
-          title: 'Total Commerce Performance',
-          explanation: 'Overall commerce platform summary across all verified transactions.',
-          mode: 'analytics'
+          title: 'J.A.R.V.I.S. Scope Guidance',
+          explanation: "I am J.A.R.V.I.S., configured specifically for NexaCart commerce intelligence. While I cannot compute general non-commerce queries, I can analyze store rankings, sales trends, delivery metrics, or SQL midterm scenarios.",
+          mode: 'conversational'
         },
-        explanation: 'Total net sales is ₱6,914,845 across 2,418 orders with an average order value of ₱2,859.74.',
-        rows: [{ label: 'All commerce', value: LOCAL_DATASET.totals.net_sales }],
-        source: 'supabase (resilient)',
-        planner: 'Bulletproof Engine'
+        explanation: "I am J.A.R.V.I.S., configured specifically for NexaCart commerce intelligence. While I cannot compute general non-commerce queries, I can analyze store rankings, sales trends, delivery metrics, or SQL midterm scenarios.",
+        rows: [],
+        source: 'jarvis (conversational)',
+        planner: 'Polangui HQ Jarvis'
       };
     }
     const AI_DATA = {
@@ -744,25 +798,38 @@
       a.lineTo(w - 2, 32);
       a.stroke();
 
+      const isConversational = data.plan?.mode === 'conversational' || data.graphType === 'dialogue';
+
       a.fillStyle = '#38bdf8';
       a.font = '700 8px monospace';
       const plannerLabel = (data.planner || 'GEMINI 2.5').toUpperCase().replace('GEMINI-', 'GEMINI ');
-      a.fillText(`AI GRAPH · ${plannerLabel}`, 12, 14);
+      a.fillText(isConversational ? `AI DIALOGUE · ${plannerLabel}` : `AI GRAPH · ${plannerLabel}`, 12, 14);
 
       a.fillStyle = '#94a3b8';
       a.font = '600 7.5px system-ui, sans-serif';
       const qText = (data.question || data.title || 'COMMERCE INTELLIGENCE').toUpperCase();
       a.fillText(qText.length > 32 ? qText.slice(0, 31) + '…' : qText, 12, 25);
 
-      a.fillStyle = '#fde047';
-      a.font = '700 13px monospace, system-ui';
-      a.textAlign = 'right';
-      a.fillText((data.summaryValue != null && data.summaryValue !== '') ? data.summaryValue : (isMoney ? '₱6.91M' : '0'), w - 12, 20);
+      if (isConversational) {
+        a.fillStyle = '#34d399';
+        a.font = '700 11px monospace, system-ui';
+        a.textAlign = 'right';
+        a.fillText('CONVERSATIONAL', w - 12, 20);
+        a.fillStyle = '#6ee7b7';
+        a.font = '600 7px monospace';
+        a.fillText('JARVIS DIALOGUE', w - 12, 28);
+        a.textAlign = 'left';
+      } else {
+        a.fillStyle = '#fde047';
+        a.font = '700 13px monospace, system-ui';
+        a.textAlign = 'right';
+        a.fillText((data.summaryValue != null && data.summaryValue !== '') ? data.summaryValue : (isMoney ? '₱6.91M' : '0'), w - 12, 20);
 
-      a.fillStyle = '#64748b';
-      a.font = '600 7px monospace';
-      a.fillText((data.metric || 'NET SALES').toUpperCase().replace('_', ' ') + ' TOTAL', w - 12, 28);
-      a.textAlign = 'left';
+        a.fillStyle = '#64748b';
+        a.font = '600 7px monospace';
+        a.fillText((data.metric || 'NET SALES').toUpperCase().replace('_', ' ') + ' TOTAL', w - 12, 28);
+        a.textAlign = 'left';
+      }
 
       if(data.loading){
         const scanX = 12 + ((performance.now() * 0.16) % (w - 24));
@@ -777,6 +844,57 @@
         a.textAlign = 'center';
         a.fillText('● COMPUTING QUERY PLAN & GRAPH...', w / 2, 95);
         a.textAlign = 'left';
+        return;
+      }
+
+      if (isConversational) {
+        // Render sleek Jarvis Conversational HUD card
+        a.fillStyle = 'rgba(6, 78, 59, 0.25)';
+        a.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+        a.lineWidth = 1;
+        a.beginPath();
+        if (typeof a.roundRect === 'function') {
+          a.roundRect(14, 40, w - 28, 102, 6);
+        } else {
+          a.rect(14, 40, w - 28, 102);
+        }
+        a.fill();
+        a.stroke();
+
+        // Glowing voice/audio wave
+        a.strokeStyle = '#10b981';
+        a.lineWidth = 1.5;
+        a.beginPath();
+        const waveY = 56;
+        for (let x = 20; x < w - 20; x += 4) {
+          const waveAmp = Math.sin((x * 0.15) + ((S.t || performance.now()) * 0.005)) * 4;
+          if (x === 20) a.moveTo(x, waveY + waveAmp);
+          else a.lineTo(x, waveY + waveAmp);
+        }
+        a.stroke();
+
+        a.fillStyle = '#a7f3d0';
+        a.font = '600 8px system-ui, sans-serif';
+        a.fillText('J.A.R.V.I.S. VOCAL SYNTHESIS & REASONING', 22, 74);
+
+        a.fillStyle = '#ecfdf5';
+        a.font = '500 8px system-ui, sans-serif';
+        const explText = data.explanation || 'Direct conversation active.';
+        const words = explText.split(/\s+/);
+        let line = '', curY = 88;
+        for (let n = 0; n < words.length; n++) {
+          const testLine = line + words[n] + ' ';
+          const metrics = a.measureText(testLine);
+          if (metrics.width > (w - 48) && n > 0) {
+            a.fillText(line, 22, curY);
+            line = words[n] + ' ';
+            curY += 11;
+            if (curY > 136) { line = line + '…'; break; }
+          } else {
+            line = testLine;
+          }
+        }
+        if (curY <= 136) a.fillText(line, 22, curY);
         return;
       }
 
@@ -1014,11 +1132,27 @@
         const maxVal = Math.max(1, rows.reduce((max, r) => Math.max(max, Number(r?.value) || 0), 0));
 
         if(!rows.length){
-          a.fillStyle = '#94a3b8';
-          a.font = '500 8.5px system-ui';
-          a.textAlign = 'center';
-          a.fillText(data.explanation || 'No breakdown records match this scope.', w / 2, h / 2);
-          a.textAlign = 'left';
+          a.fillStyle = '#10b981';
+          a.font = '700 8.5px monospace';
+          a.fillText('● CONVERSATIONAL REASONING LEDGER', 20, 56);
+          a.fillStyle = '#ecfdf5';
+          a.font = '500 8px system-ui';
+          const explText = data.explanation || 'No database breakdown records required for this dialogue.';
+          const words = explText.split(/\s+/);
+          let line = '', curY = 74;
+          for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = a.measureText(testLine);
+            if (metrics.width > (w - 48) && n > 0) {
+              a.fillText(line, 20, curY);
+              line = words[n] + ' ';
+              curY += 12;
+              if (curY > 150) { line = line + '…'; break; }
+            } else {
+              line = testLine;
+            }
+          }
+          if (curY <= 150) a.fillText(line, 20, curY);
         } else {
           a.strokeStyle = 'rgba(56, 189, 248, 0.2)';
           a.lineWidth = 0.5;
@@ -1090,17 +1224,18 @@
         a.lineWidth = 0.8;
         a.strokeRect(8, 34, w - 16, 134);
 
-        a.fillStyle = '#38bdf8';
+        const isConversational = data.plan?.mode === 'conversational';
+        a.fillStyle = isConversational ? '#34d399' : '#38bdf8';
         a.font = '700 7px monospace';
-        a.fillText('POSTGRESQL DIALECT · DRIZZLE RPC COMPILED', 16, 46);
+        a.fillText(isConversational ? 'AI DIALOGUE · NO DATABASE QUERY REQUIRED' : 'POSTGRESQL DIALECT · DRIZZLE RPC COMPILED', 16, 46);
 
         a.fillStyle = '#86efac';
         a.font = '600 6.5px monospace';
         a.textAlign = 'right';
-        a.fillText('● 200 OK · 24ms', w - 16, 46);
+        a.fillText(isConversational ? '● CONVERSATIONAL' : '● 200 OK · 24ms', w - 16, 46);
         a.textAlign = 'left';
 
-        const rawSql = data.sql || 'SELECT COALESCE(s.shop_name, \'Unmatched\') AS label,\n  COALESCE(SUM(f.net_sales), 0) AS value\nFROM fact_order_items f\nLEFT JOIN dim_sellers s ON f.seller_key = s.seller_key\nGROUP BY 1 ORDER BY 2 DESC LIMIT 10;';
+        const rawSql = data.sql || (isConversational ? '-- Conversational Assistant Dialogue\n-- No database query executed\n-- Status: Verified complete' : 'SELECT COALESCE(s.shop_name, \'Unmatched\') AS label,\n  COALESCE(SUM(f.net_sales), 0) AS value\nFROM fact_order_items f\nLEFT JOIN dim_sellers s ON f.seller_key = s.seller_key\nGROUP BY 1 ORDER BY 2 DESC LIMIT 10;');
         const sqlLines = rawSql.split('\n').filter(l => l.trim().length > 0).slice(0, 5);
 
         sqlLines.forEach((line, idx) => {
@@ -1737,10 +1872,11 @@
       AI_DATA.planner = data.planner || 'Gemini AI';
       AI_DATA.source = data.source || 'supabase';
       AI_DATA.explanation = data.explanation || '';
-      AI_DATA.rows = Array.isArray(data.rows) && data.rows.length ? data.rows : (Array.isArray(data.records) && data.records.length ? data.records.map(rec => ({
+      const isConversational = data.plan?.mode === 'conversational' || (!data.rows?.length && !data.records?.length && data.explanation);
+      AI_DATA.rows = isConversational ? [] : (Array.isArray(data.rows) && data.rows.length ? data.rows : (Array.isArray(data.records) && data.records.length ? data.records.map(rec => ({
         label: rec.product_name || rec.customer_name || rec.seller || rec.category || rec.order_number || 'Item',
         value: Number(rec.gross_sales || rec.net_sales || rec.total_paid || rec.quantity || 1)
-      })) : []);
+      })) : []));
       AI_DATA.records = Array.isArray(data.records) ? data.records : [];
       AI_DATA.columns = Array.isArray(data.columns) ? data.columns : [];
       AI_DATA.isRelational = Boolean(data.isRelational);
@@ -1750,7 +1886,12 @@
 
       const isMoney = isMoneyMetric(AI_DATA.metric || data.plan?.metric);
 
-      if(AI_DATA.dimension === 'date' && AI_DATA.rows.length > 0){
+      if(isConversational){
+        AI_DATA.graphType = 'dialogue';
+        AI_DATA.summaryValue = 'Active';
+        oldSeries = newSeries.slice(0, 10);
+        newSeries = [0.1, 0.2, 0.15, 0.25, 0.18, 0.22, 0.14, 0.2, 0.16, 0.12];
+      } else if(AI_DATA.dimension === 'date' && AI_DATA.rows.length > 0){
         AI_DATA.graphType = 'area';
         const maxVal = Math.max(1, ...AI_DATA.rows.map(r => Number(r.value) || 0));
         const count = 20;
