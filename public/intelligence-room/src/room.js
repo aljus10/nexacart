@@ -255,11 +255,11 @@
             limit: 10,
             direction: 'desc',
             filters: {},
-            title: 'J.A.R.V.I.S. Humor Matrix',
-            explanation: 'Why did the database administrator leave his date? Because she insisted on full outer joins when he was strictly looking for a single primary key! 😄 What commerce data can I pull up for you today, boss?',
+            title: 'J.A.R.V.I.S. Operational Scope',
+            explanation: 'I am J.A.R.V.I.S., configured strictly for NexaCart commerce intelligence. I can only answer queries directly related to your retail dataset and operational metrics.',
             mode: 'conversational'
           },
-          explanation: 'Why did the database administrator leave his date? Because she insisted on full outer joins when he was strictly looking for a single primary key! 😄 What commerce data can I pull up for you today, boss?',
+          explanation: 'I am J.A.R.V.I.S., configured strictly for NexaCart commerce intelligence. I can only answer queries directly related to your retail dataset and operational metrics.',
           rows: [],
           source: 'jarvis (conversational)',
           planner: 'Polangui HQ Jarvis'
@@ -273,11 +273,11 @@
             limit: 10,
             direction: 'desc',
             filters: {},
-            title: 'Suggested Analytical Inquiries',
-            explanation: 'Here are a few analytical queries to test our neural network:\n• "Which 5 stores generated the highest net sales in 2025?"\n• "Compare orders across payment methods like Maya, GCash, and COD"\n• "Scenario 2: Maria Flores Maya orders in February 2025"\nWhich one shall I analyze for you?',
+            title: 'Supported Analytical Inquiries',
+            explanation: 'Supported analytical queries for our neural network:\n• "Which 5 stores generated the highest net sales in 2025?"\n• "Compare orders across payment methods like Maya, GCash, and COD"\n• "Scenario 2: Maria Flores Maya orders in February 2025"',
             mode: 'conversational'
           },
-          explanation: 'Here are a few analytical queries to test our neural network:\n• "Which 5 stores generated the highest net sales in 2025?"\n• "Compare orders across payment methods like Maya, GCash, and COD"\n• "Scenario 2: Maria Flores Maya orders in February 2025"\nWhich one shall I analyze for you?',
+          explanation: 'Supported analytical queries for our neural network:\n• "Which 5 stores generated the highest net sales in 2025?"\n• "Compare orders across payment methods like Maya, GCash, and COD"\n• "Scenario 2: Maria Flores Maya orders in February 2025"',
           rows: [],
           source: 'jarvis (conversational)',
           planner: 'Polangui HQ Jarvis'
@@ -292,10 +292,10 @@
             direction: 'desc',
             filters: {},
             title: 'Polangui HQ J.A.R.V.I.S.',
-            explanation: "Greetings! I am J.A.R.V.I.S., your tactical AI assistant inside Polangui HQ. I monitor real-time commerce feeds, project relational SQL data, and track revenue across the Philippines. How can I serve you today?",
+            explanation: "I am J.A.R.V.I.S., configured strictly for NexaCart commerce intelligence. I can answer questions directly related to your retail dataset, stores, products, deliveries, and SQL analytics.",
             mode: 'conversational'
           },
-          explanation: "Greetings! I am J.A.R.V.I.S., your tactical AI assistant inside Polangui HQ. I monitor real-time commerce feeds, project relational SQL data, and track revenue across the Philippines. How can I serve you today?",
+          explanation: "I am J.A.R.V.I.S., configured strictly for NexaCart commerce intelligence. I can answer questions directly related to your retail dataset, stores, products, deliveries, and SQL analytics.",
           rows: [],
           source: 'jarvis (conversational)',
           planner: 'Polangui HQ Jarvis'
@@ -344,11 +344,11 @@
           limit: 10,
           direction: 'desc',
           filters: {},
-          title: 'J.A.R.V.I.S. Scope Guidance',
-          explanation: "I am J.A.R.V.I.S., configured specifically for NexaCart commerce intelligence. While I cannot compute general non-commerce queries, I can analyze store rankings, sales trends, delivery metrics, or SQL midterm scenarios.",
+          title: 'J.A.R.V.I.S. Operational Scope',
+          explanation: "I am J.A.R.V.I.S., configured strictly for NexaCart commerce intelligence. I can only answer queries directly related to your retail dataset and operational metrics.",
           mode: 'conversational'
         },
-        explanation: "I am J.A.R.V.I.S., configured specifically for NexaCart commerce intelligence. While I cannot compute general non-commerce queries, I can analyze store rankings, sales trends, delivery metrics, or SQL midterm scenarios.",
+        explanation: "I am J.A.R.V.I.S., configured strictly for NexaCart commerce intelligence. I can only answer queries directly related to your retail dataset and operational metrics.",
         rows: [],
         source: 'jarvis (conversational)',
         planner: 'Polangui HQ Jarvis'

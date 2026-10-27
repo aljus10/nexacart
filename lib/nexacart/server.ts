@@ -94,19 +94,19 @@ Core Instructions:
 - If the user says "hi", "hello", "hey", greets, or asks who you are, how you are, what you can do:
   Set supported: true, mode: "conversational".
   Set plan: { metric: "net_sales", dimension: "none", limit: 10, direction: "desc", filters: {}, title: "NexaCart AI Assistant", mode: "conversational" }.
-  In reason: Greet warmly: "Hi! I'm NexaCart AI, your commerce analytics assistant connected to live Supabase data. I can answer questions about sales, orders, best-selling products, store rankings, payment methods, delivery performance, and retail trends. How can I help you today?"
+  In reason: State formally: "Hi, I'm NexaCart AI. I am strictly specialized in retail commerce analytics connected to Supabase and can answer questions related to your store data (sales, orders, products, sellers, payments, and couriers). How can I assist you with your analytics today?"
 
-2. JOKES, HUMOR & CASUAL BANTER:
-- If the user asks for a joke, humor, pun, or laughs:
+2. JOKES, CASUAL BANTER & NON-COMMERCE TOPICS:
+- If the user asks for a joke, humor, casual banter, general trivia, sports, weather, or random topics:
   Set supported: true, mode: "conversational".
-  Set plan: { metric: "net_sales", dimension: "none", limit: 10, direction: "desc", filters: {}, title: "Commerce Humor & Wit", mode: "conversational" }.
-  In reason: Tell a clever, lighthearted retail, e-commerce, or SQL/tech joke, then invite them to analyze data! (e.g. "Why did the database administrator leave his date? Because she insisted on full outer joins when he was strictly looking for a single primary key! 😄 What data would you like to explore next in NexaCart?")
+  Set plan: { metric: "net_sales", dimension: "none", limit: 10, direction: "desc", filters: {}, title: "NexaCart Scope Notice", mode: "conversational" }.
+  In reason: State strictly and professionally: "Hi, I'm NexaCart AI. I am strictly specialized in retail commerce analytics connected to Supabase and can only answer questions related to your store data. You can ask about net sales, order volume, store rankings, payment methods, delivery performance, or midterm scenarios."
 
 3. RANDOM QUESTIONS & SUGGESTIONS:
 - If the user asks to "make a random question", "suggest a question", or "what should I ask":
   Set supported: true, mode: "conversational".
-  Set plan: { metric: "net_sales", dimension: "none", limit: 10, direction: "desc", filters: {}, title: "Suggested Analytical Questions", mode: "conversational" }.
-  In reason: Suggest 2-3 engaging, concrete questions from the dataset (e.g. "Which 5 stores have the highest net sales?", "Compare orders by payment method like Maya, GCash, and COD", or "Scenario 2: Maria Flores Maya orders in Feb 2025").
+  Set plan: { metric: "net_sales", dimension: "none", limit: 10, direction: "desc", filters: {}, title: "Supported Analytics Inquiries", mode: "conversational" }.
+  In reason: State clearly: "Here are supported analytical questions you can ask me: 'Which 5 stores generated the highest net sales in 2025?', 'Compare orders across payment methods like Maya, GCash, and COD', or 'Scenario 2: Maria Flores Maya orders in February 2025'."
 
 4. OUT-OF-SCOPE & NON-COMMERCE TOPICS:
 - If the question is trivia, weather, sports, or completely unrelated to commerce:
@@ -305,8 +305,8 @@ Question: ${JSON.stringify(question)}`;
       limit: 10,
       direction: 'desc',
       filters,
-      title: isGreeting ? 'NexaCart AI Assistant' : isJoke ? 'Commerce Humor & Wit' : isRandomQuestion ? 'Suggested Analytical Questions' : isUnavailableData ? 'Data Scope Guidance' : 'NexaCart Scope Guidance',
-      explanation: parsed.reason || (isJoke ? 'Why did the SQL developer walk out of the e-commerce store? Too many uncommitted transactions and they couldn’t find their primary key! 😄 What data would you like to explore next in NexaCart?' : isRandomQuestion ? 'Here are a few great questions you can explore:\n• "Which 5 stores generated the highest net sales in 2025?"\n• "Compare orders across payment methods like Maya, GCash, and COD"\n• "Scenario 2: Maria Flores orders paid via Maya in February 2025"' : "Hi! I'm NexaCart AI. I can answer questions about your sales, orders, products, sellers, payments, and couriers connected in Supabase."),
+      title: isGreeting ? 'NexaCart AI Assistant' : isJoke ? 'NexaCart Scope Notice' : isRandomQuestion ? 'Supported Analytics Inquiries' : isUnavailableData ? 'Data Scope Guidance' : 'NexaCart Scope Notice',
+      explanation: parsed.reason || (isRandomQuestion ? 'Here are supported analytical questions you can ask me:\n• "Which 5 stores generated the highest net sales in 2025?"\n• "Compare orders across payment methods like Maya, GCash, and COD"\n• "Scenario 2: Maria Flores Maya orders in February 2025"' : "Hi, I'm NexaCart AI. I am strictly specialized in retail commerce analytics connected to Supabase and can only answer questions related to your store data. You can ask about net sales, order volume, store rankings, payment methods, delivery performance, or midterm scenarios."),
       mode: 'conversational'
     };
   }
@@ -361,8 +361,8 @@ Question: ${JSON.stringify(question)}`;
         limit: 10,
         direction: 'desc',
         filters,
-        title: isGreeting ? 'NexaCart AI Assistant' : isJoke ? 'Commerce Humor & Wit' : isRandomQuestion ? 'Suggested Analytical Questions' : isUnavailableData ? 'Data Scope Guidance' : 'NexaCart Scope Guidance',
-        explanation: parsed.reason || (isJoke ? 'Why did the SQL developer walk out of the e-commerce store? Too many uncommitted transactions and they couldn’t find their primary key! 😄 What data would you like to explore next in NexaCart?' : isRandomQuestion ? 'Here are a few great questions you can explore:\n• "Which 5 stores generated the highest net sales in 2025?"\n• "Compare orders across payment methods like Maya, GCash, and COD"\n• "Scenario 2: Maria Flores orders paid via Maya in February 2025"' : "Hi! I'm NexaCart AI. I can answer questions about your sales, orders, products, sellers, payments, and couriers connected in Supabase."),
+        title: isGreeting ? 'NexaCart AI Assistant' : isJoke ? 'NexaCart Scope Notice' : isRandomQuestion ? 'Supported Analytics Inquiries' : isUnavailableData ? 'Data Scope Guidance' : 'NexaCart Scope Notice',
+        explanation: parsed.reason || (isRandomQuestion ? 'Here are supported analytical questions you can ask me:\n• "Which 5 stores generated the highest net sales in 2025?"\n• "Compare orders across payment methods like Maya, GCash, and COD"\n• "Scenario 2: Maria Flores Maya orders in February 2025"' : "Hi, I'm NexaCart AI. I am strictly specialized in retail commerce analytics connected to Supabase and can only answer questions related to your store data. You can ask about net sales, order volume, store rankings, payment methods, delivery performance, or midterm scenarios."),
         mode: 'conversational'
       };
     }
@@ -390,8 +390,8 @@ export async function answerQuestion(env: RuntimeEnv, question: string, s: Snaps
             limit: 10,
             direction: 'desc',
             filters,
-            title: 'NexaCart Scope Guidance',
-            explanation: "I'm specialized in retail commerce analytics for NexaCart in Supabase. You can ask me about store rankings, sales trends, average order value, payment methods, delivery performance, or midterm scenarios!",
+            title: 'NexaCart Scope Notice',
+            explanation: "Hi, I'm NexaCart AI. I am strictly specialized in retail commerce analytics connected to Supabase and can only answer questions related to your store data. You can ask about net sales, order volume, store rankings, payment methods, delivery performance, or midterm scenarios.",
             mode: 'conversational'
           };
         } else {
@@ -411,8 +411,8 @@ export async function answerQuestion(env: RuntimeEnv, question: string, s: Snaps
           limit: 10,
           direction: 'desc',
           filters,
-          title: 'NexaCart Scope Guidance',
-          explanation: "I'm specialized in retail commerce analytics for NexaCart in Supabase. You can ask me about store rankings, sales trends, average order value, payment methods, delivery performance, or midterm scenarios!",
+          title: 'NexaCart Scope Notice',
+          explanation: "Hi, I'm NexaCart AI. I am strictly specialized in retail commerce analytics connected to Supabase and can only answer questions related to your store data. You can ask about net sales, order volume, store rankings, payment methods, delivery performance, or midterm scenarios.",
           mode: 'conversational'
         };
       } else {
